@@ -1,5 +1,5 @@
 /* ==========================================================================
-   FARM EMPIRE - Farm Stations with Sprout Lands Pixel-Art Assets & Fast Broad Zone Mechanics
+   FARM EMPIRE - Farm Stations (Pixel Art Top-Down Basic Structures & Machinery)
    ========================================================================== */
 
 class ActionPad {
@@ -17,10 +17,13 @@ class ActionPad {
         this.isActive = true;
         this.isUnlocked = false;
         this.isPurchased = false;
+        this.pulseTimer = Math.random() * Math.PI * 2;
     }
 
     update(dt, player) {
         if (!this.isActive || this.isPurchased || !player) return;
+
+        this.pulseTimer += dt * 4;
 
         const dist = Math.hypot(player.x - this.x, player.y - this.y);
         if (dist <= this.radius) {
@@ -40,6 +43,7 @@ class ActionPad {
                 this.isPurchased = true;
                 this.onCompleteAction(player);
                 soundManager.playHire();
+                engine.spawnMoneySparks(this.x, this.y, 10);
                 showToast(`✅ ${this.name} Completed!`, 'success');
             }
         } else {
@@ -54,41 +58,43 @@ class ActionPad {
         ctx.save();
         ctx.translate(this.x, this.y);
 
+        const pulseScale = 1 + Math.sin(this.pulseTimer) * 0.05;
+
         // Ground Target Base
         ctx.beginPath();
-        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = this.cost > 0 ? 'rgba(245, 158, 11, 0.25)' : 'rgba(59, 130, 246, 0.25)';
+        ctx.arc(0, 0, this.radius * pulseScale, 0, Math.PI * 2);
+        ctx.fillStyle = this.cost > 0 ? 'rgba(245, 158, 11, 0.28)' : 'rgba(56, 189, 248, 0.28)';
         ctx.fill();
-        ctx.strokeStyle = this.cost > 0 ? '#f59e0b' : '#3b82f6';
-        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = this.cost > 0 ? '#fbbf24' : '#38bdf8';
+        ctx.lineWidth = 3;
         ctx.stroke();
 
-        // Hold Progress Meter Ring
+        // Hold Progress Arc Ring
         if (this.currentHoldTime > 0) {
             const fillRatio = Math.min(1, this.currentHoldTime / this.requiredHoldTime);
             ctx.beginPath();
-            ctx.arc(0, 0, this.radius + 3, -Math.PI / 2, (-Math.PI / 2) + (Math.PI * 2 * fillRatio));
+            ctx.arc(0, 0, this.radius + 4, -Math.PI / 2, (-Math.PI / 2) + (Math.PI * 2 * fillRatio));
             ctx.strokeStyle = '#10b981';
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 5;
             ctx.stroke();
         }
 
         // Icon
         ctx.fillStyle = '#ffffff';
-        ctx.font = '14px Outfit';
+        ctx.font = '16px Outfit';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(this.icon, 0, -10);
 
         // Label
-        ctx.font = '800 9px Outfit';
-        ctx.fillText(this.name, 0, 5);
+        ctx.font = '900 9px Outfit';
+        ctx.fillText(this.name, 0, 6);
 
         // Price Tag
         if (this.cost > 0) {
             ctx.fillStyle = '#fef08a';
-            ctx.font = '900 9px Outfit';
-            ctx.fillText(`$${this.cost}`, 0, 17);
+            ctx.font = '900 10px Outfit';
+            ctx.fillText(`$${this.cost}`, 0, 18);
         }
 
         ctx.restore();
@@ -96,7 +102,7 @@ class ActionPad {
 }
 
 /* --------------------------------------------------------------------------
-   Farm Station Modules with Sprout Lands Pixel-Art Assets
+   Farm Station Modules with Pixel Art Top-Down Basic Assets
    -------------------------------------------------------------------------- */
 class GrainStation {
     constructor(x, y) {
@@ -109,8 +115,7 @@ class GrainStation {
         this.worker = null;
         this.transferTimer = 0;
 
-        // Upgrade / Hire Pad in front
-        this.hirePad = new ActionPad('hire_feed_worker', 'Hire Feeder ($50)', x, y + 85, 30, 50, 0.4, () => {
+        this.hirePad = new ActionPad('hire_feed_worker', 'Hire Feeder ($50)', x, y + 85, 32, 50, 0.4, () => {
             if (!this.worker) {
                 this.worker = spawnRouteHelper('feed_worker', 'Feeder Helper',
                     { x: this.x, y: this.y, stationRef: this },
@@ -134,7 +139,7 @@ class GrainStation {
             }
         }, '🧑‍🌾');
 
-        this.extraPlotPad = new ActionPad('unlock_wheat_2', 'Unlock Plot 2 ($150)', x + 75, y + 85, 30, 150, 0.5, () => {
+        this.extraPlotPad = new ActionPad('unlock_wheat_2', 'Unlock Plot 2 ($150)', x + 75, y + 85, 32, 150, 0.5, () => {
             this.isExtraPlotUnlocked = true;
             this.maxStock = 120;
             this.feedStock += 30;
@@ -151,7 +156,6 @@ class GrainStation {
     receiveItemFromWorker(item) { return false; }
 
     update(dt, player) {
-        // Fast instant wheat growth
         this.growTimer += dt;
         const growthInterval = this.isExtraPlotUnlocked ? 0.2 : 0.4;
         if (this.growTimer >= growthInterval && this.feedStock < this.maxStock) {
@@ -159,7 +163,7 @@ class GrainStation {
             this.growTimer = 0;
         }
 
-        // Broad Zone Interaction: Standing anywhere on field plot collects wheat instantly into player stack!
+        // Broad Zone Interaction: Collect wheat into player stack
         if (player && Math.hypot(player.x - this.x, player.y - this.y) <= 85) {
             this.transferTimer += dt;
             if (this.transferTimer >= 0.08) {
@@ -181,7 +185,7 @@ class GrainStation {
         const sprDirt = assets.get('dirt');
         const sprPlants = assets.get('plants');
 
-        // Draw Sprout Lands Tilled Soil Grid
+        // Draw Tilled Soil Grid with Border
         if (sprDirt && sprDirt.complete) {
             for (let px = -60; px <= 40; px += 32) {
                 for (let py = -40; py <= 20; py += 32) {
@@ -189,17 +193,28 @@ class GrainStation {
                 }
             }
         } else {
-            ctx.fillStyle = '#d97706';
+            ctx.fillStyle = '#6a3b1c';
             ctx.fillRect(this.x - 70, this.y - 45, 140, 80);
+            ctx.strokeStyle = '#4a2710';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(this.x - 70, this.y - 45, 140, 80);
         }
 
-        // Draw Sprout Lands Mature Wheat Crops
-        if (sprPlants && sprPlants.complete) {
-            const renderedCrops = Math.min(this.feedStock, 15);
-            for (let i = 0; i < renderedCrops; i++) {
-                const wx = this.x - 55 + (i % 5) * 24;
-                const wy = this.y - 35 + Math.floor(i / 5) * 24;
-                ctx.drawImage(sprPlants, 32, 0, 16, 16, wx, wy, 24, 24);
+        // Draw Swaying Golden Wheat Crops
+        const now = performance.now() * 0.004;
+        const renderedCrops = Math.min(this.feedStock, 15);
+        for (let i = 0; i < renderedCrops; i++) {
+            const wx = this.x - 55 + (i % 5) * 24;
+            const wy = this.y - 35 + Math.floor(i / 5) * 24;
+            const sway = Math.sin(now + i) * 3;
+
+            if (sprPlants && sprPlants.complete) {
+                ctx.drawImage(sprPlants, 32, 0, 16, 16, wx + sway, wy, 24, 24);
+            } else {
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(wx + sway, wy - 8, 4, 16);
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(wx + sway - 2, wy - 12, 8, 8);
             }
         }
 
@@ -211,12 +226,25 @@ class GrainStation {
                         ctx.drawImage(sprDirt, 0, 0, 16, 16, this.x + px, this.y + py, 32, 32);
                     }
                 }
+            } else {
+                ctx.fillStyle = '#6a3b1c';
+                ctx.fillRect(this.x + 75, this.y - 45, 75, 80);
+                ctx.strokeStyle = '#4a2710';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(this.x + 75, this.y - 45, 75, 80);
             }
-            if (sprPlants && sprPlants.complete) {
-                for (let i = 0; i < Math.min(10, Math.max(0, this.feedStock - 15)); i++) {
-                    const wx = this.x + 85 + (i % 3) * 20;
-                    const wy = this.y - 35 + Math.floor(i / 3) * 24;
-                    ctx.drawImage(sprPlants, 32, 0, 16, 16, wx, wy, 22, 22);
+
+            const extraCrops = Math.min(10, Math.max(0, this.feedStock - 15));
+            for (let i = 0; i < extraCrops; i++) {
+                const wx = this.x + 85 + (i % 3) * 22;
+                const wy = this.y - 35 + Math.floor(i / 3) * 24;
+                const sway = Math.sin(now + i + 2) * 3;
+
+                if (sprPlants && sprPlants.complete) {
+                    ctx.drawImage(sprPlants, 32, 0, 16, 16, wx + sway, wy, 22, 22);
+                } else {
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.fillRect(wx + sway, wy - 8, 4, 16);
                 }
             }
         }
@@ -225,6 +253,8 @@ class GrainStation {
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 12px Outfit';
         ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 4;
         ctx.fillText(`GRAIN PATCH (${this.feedStock}/${this.maxStock})`, this.x, this.y - 55);
 
         ctx.restore();
@@ -265,7 +295,6 @@ class CoopStation {
     }
 
     update(dt, player) {
-        // Fast instant egg production when feed is present
         if (this.feedTrough > 0 && this.eggStock < this.maxEggs) {
             this.layTimer += dt;
             if (this.layTimer >= 0.4) {
@@ -275,7 +304,7 @@ class CoopStation {
             }
         }
 
-        // Broad Zone Interaction: Standing anywhere inside coop zone feeds wheat AND collects eggs instantly!
+        // Broad Zone Interaction
         if (player && Math.hypot(player.x - this.x, player.y - this.y) <= 85) {
             this.transferTimer += dt;
             if (this.transferTimer >= 0.08) {
@@ -297,25 +326,46 @@ class CoopStation {
         if (sprHouse && sprHouse.complete) {
             ctx.drawImage(sprHouse, 0, 0, 80, 80, this.x - 60, this.y - 65, 120, 120);
         } else {
+            // Timber Wooden Coop Barn
+            ctx.fillStyle = '#92400e';
+            ctx.fillRect(this.x - 65, this.y - 50, 130, 75);
             ctx.fillStyle = '#b45309';
-            ctx.fillRect(this.x - 70, this.y - 45, 140, 70);
+            ctx.fillRect(this.x - 55, this.y - 40, 110, 55);
+
+            // Roof
+            ctx.fillStyle = '#dc2626';
+            ctx.beginPath();
+            ctx.moveTo(this.x - 75, this.y - 50);
+            ctx.lineTo(this.x, this.y - 80);
+            ctx.lineTo(this.x + 75, this.y - 50);
+            ctx.closePath();
+            ctx.fill();
         }
 
-        // Hens inside
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '16px Outfit';
-        ctx.textAlign = 'center';
-        ctx.fillText('🐓 🐓 🐓', this.x, this.y - 10);
+        // Animated Pecking Chickens Inside
+        const peck = Math.sin(performance.now() * 0.008) * 3;
+        ctx.fillStyle = '#fffbeb';
+        ctx.beginPath();
+        ctx.arc(this.x - 30 + peck, this.y - 10, 8, 0, Math.PI * 2);
+        ctx.arc(this.x + peck, this.y - 5, 8, 0, Math.PI * 2);
+        ctx.arc(this.x + 30 - peck, this.y - 10, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(this.x - 30 + peck, this.y - 18, 3, 4);
+        ctx.fillRect(this.x + peck, this.y - 13, 3, 4);
+        ctx.fillRect(this.x + 30 - peck, this.y - 18, 3, 4);
 
         // Status Badge Pill
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-        ctx.fillRect(this.x - 75, this.y + 35, 150, 20);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.fillRect(this.x - 75, this.y + 35, 150, 22);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
         ctx.lineWidth = 1;
-        ctx.strokeRect(this.x - 75, this.y + 35, 150, 20);
+        ctx.strokeRect(this.x - 75, this.y + 35, 150, 22);
 
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 10px Outfit';
+        ctx.textAlign = 'center';
         ctx.fillText(`FEED: ${this.feedTrough}/${this.maxFeed} | EGGS: ${this.eggStock}/${this.maxEggs}`, this.x, this.y + 49);
 
         ctx.restore();
@@ -327,7 +377,6 @@ class MarketStall {
         this.x = x;
         this.y = y;
 
-        // Physical inventory stock counters
         this.stock = {
             wheat: 0,
             egg: 0,
@@ -340,7 +389,6 @@ class MarketStall {
         this.worker = null;
         this.transferTimer = 0;
 
-        // Upgrade / Hire Pad in front
         this.hirePad = new ActionPad('hire_sales_worker', 'Hire Stocker ($100)', x, y + 85, 32, 100, 0.5, () => {
             if (!this.worker) {
                 this.worker = spawnRouteHelper('sales_worker', 'Egg Seller',
@@ -379,13 +427,14 @@ class MarketStall {
         if (this.stock[desiredItem] > 0) {
             this.stock[desiredItem] -= 1;
 
-            let price = 20; // Default Egg
+            let price = 20;
             if (desiredItem === 'wheat') price = 10;
             if (desiredItem === 'mayo') price = 50;
             if (desiredItem === 'milk') price = 40;
             if (desiredItem === 'cheese') price = 100;
 
             economy.addMoney(price);
+            engine.spawnMoneySparks(this.x, this.y - 40, 8);
             createFloatingText(`+$${price}`, this.x, this.y - 50, '#10b981');
             return true;
         }
@@ -395,7 +444,6 @@ class MarketStall {
     giveItemToWorker(type) { return null; }
 
     update(dt, player) {
-        // Broad Zone Interaction: Standing anywhere at market stall automatically stocks items into market inventory!
         if (player && Math.hypot(player.x - this.x, player.y - this.y) <= 85) {
             this.transferTimer += dt;
             if (this.transferTimer >= 0.08) {
@@ -423,28 +471,33 @@ class MarketStall {
         if (sprFurniture && sprFurniture.complete) {
             ctx.drawImage(sprFurniture, 0, 0, 48, 48, this.x - 50, this.y - 45, 100, 70);
         } else {
-            ctx.fillStyle = '#0f172a';
+            // Dark Wooden Counter Base
+            ctx.fillStyle = '#334155';
             ctx.fillRect(this.x - 70, this.y - 40, 140, 60);
-            ctx.fillStyle = '#3b82f6';
-            ctx.fillRect(this.x - 75, this.y - 50, 150, 14);
+
+            // Striped Canvas Awning (Red & White)
+            for (let i = 0; i < 7; i++) {
+                ctx.fillStyle = i % 2 === 0 ? '#ef4444' : '#ffffff';
+                ctx.fillRect(this.x - 70 + (i * 20), this.y - 56, 20, 16);
+            }
         }
 
         // Header Title
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 12px Outfit';
         ctx.textAlign = 'center';
-        ctx.fillText('ROADSIDE MARKET (SHELVED STOCKS)', this.x, this.y - 58);
+        ctx.fillText('ROADSIDE MARKET (SHELVED STOCKS)', this.x, this.y - 62);
 
-        // Render Inventory Shelf Display Pill below stall
+        // Render Physical Item Stock Display Pill below stall
         ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-        ctx.fillRect(this.x - 80, this.y + 30, 160, 22);
+        ctx.fillRect(this.x - 85, this.y + 30, 170, 24);
         ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 1;
-        ctx.strokeRect(this.x - 80, this.y + 30, 160, 22);
+        ctx.strokeRect(this.x - 85, this.y + 30, 170, 24);
 
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 10px Outfit';
-        ctx.fillText(`EGGS: ${this.stock.egg} | MAYO: ${this.stock.mayo}`, this.x, this.y + 44);
+        ctx.fillText(`EGGS: ${this.stock.egg} | MAYO: ${this.stock.mayo}`, this.x, this.y + 45);
 
         ctx.restore();
 
@@ -462,13 +515,15 @@ class MayoStation {
         this.processTimer = 0;
         this.transferTimer = 0;
         this.worker = null;
+        this.gearAngle = 0;
 
         this.unlockPad = new ActionPad('unlock_mayo', 'Unlock Mayo Factory ($400)', x, y, 40, 400, 1.0, () => {
             this.isUnlocked = true;
             showToast('🏭 Mayo Factory Unlocked! Customers can now request Mayo.', 'success');
+            engine.spawnMoneySparks(this.x, this.y, 15);
         }, '🏭');
 
-        this.hirePad = new ActionPad('hire_mayo_worker', 'Hire Mayo Worker ($250)', x, y + 85, 30, 250, 0.5, () => {
+        this.hirePad = new ActionPad('hire_mayo_worker', 'Hire Mayo Worker ($250)', x, y + 85, 32, 250, 0.5, () => {
             if (!this.worker) {
                 this.worker = spawnRouteHelper('mayo_worker', 'Mayo Helper',
                     { x: game.coopStation.x, y: game.coopStation.y, stationRef: game.coopStation },
@@ -515,17 +570,18 @@ class MayoStation {
             return;
         }
 
-        // Instant fast processing
         if (this.inputEggs > 0 && this.outputMayo < 30) {
             this.processTimer += dt;
+            this.gearAngle += dt * 5;
+
             if (this.processTimer >= 0.4) {
                 this.inputEggs -= 1;
                 this.outputMayo += 1;
                 this.processTimer = 0;
+                engine.spawnExhaustSmoke(this.x + 20, this.y - 30);
             }
         }
 
-        // Broad Zone Interaction: Standing anywhere inside Mayo factory zone deposits eggs AND collects mayo!
         if (player && Math.hypot(player.x - this.x, player.y - this.y) <= 85) {
             this.transferTimer += dt;
             if (this.transferTimer >= 0.08) {
@@ -544,7 +600,7 @@ class MayoStation {
 
     draw(ctx) {
         if (!this.isUnlocked) {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
             ctx.setLineDash([6, 6]);
             ctx.strokeRect(this.x - 65, this.y - 40, 130, 80);
             ctx.setLineDash([]);
@@ -553,19 +609,37 @@ class MayoStation {
         }
 
         ctx.save();
+
+        // Factory Building (Yellow Industrial Structure)
         ctx.fillStyle = '#eab308';
         ctx.fillRect(this.x - 65, this.y - 40, 130, 60);
+        ctx.fillStyle = '#ca8a04';
+        ctx.fillRect(this.x - 65, this.y - 40, 20, 60);
 
+        // Animated Mechanical Blender Gear
+        ctx.save();
+        ctx.translate(this.x + 35, this.y - 20);
+        ctx.rotate(this.gearAngle);
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(-6, -6, 12, 12);
+        ctx.restore();
+
+        // Header Title
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 11px Outfit';
         ctx.textAlign = 'center';
         ctx.fillText('MAYO FACTORY ($50/jar)', this.x, this.y - 20);
 
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-        ctx.fillRect(this.x - 70, this.y + 25, 140, 18);
+        // Status Badge Pill
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.fillRect(this.x - 70, this.y + 25, 140, 20);
+        ctx.strokeStyle = '#eab308';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(this.x - 70, this.y + 25, 140, 20);
+
         ctx.fillStyle = '#ffffff';
         ctx.font = '800 10px Outfit';
-        ctx.fillText(`EGGS: ${this.inputEggs}/20 | MAYO: ${this.outputMayo}/30`, this.x, this.y + 37);
+        ctx.fillText(`EGGS: ${this.inputEggs}/20 | MAYO: ${this.outputMayo}/30`, this.x, this.y + 39);
 
         ctx.restore();
 
@@ -611,13 +685,21 @@ class BankDesk {
 
     draw(ctx) {
         ctx.save();
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(this.x - 50, this.y - 35, 100, 50);
+
+        // Mahogany Bank Desk
+        ctx.fillStyle = '#451a03';
+        ctx.fillRect(this.x - 55, this.y - 35, 110, 50);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(this.x - 55, this.y - 35, 110, 6);
+
+        // Header Title & Debt Display
         ctx.fillStyle = '#38bdf8';
         ctx.font = '900 11px Outfit';
         ctx.textAlign = 'center';
         ctx.fillText('FARM BANK DESK', this.x, this.y - 15);
-        ctx.fillText(`DEBT: $${economy.loanPrincipal}`, this.x, this.y + 2);
+        ctx.fillStyle = '#fca5a5';
+        ctx.fillText(`DEBT: $${economy.loanPrincipal}`, this.x, this.y + 5);
+
         ctx.restore();
 
         this.payPad.draw(ctx);

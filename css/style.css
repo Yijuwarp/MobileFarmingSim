@@ -1,16 +1,18 @@
 /* ==========================================================================
-   FARM EMPIRE - High-Pace Automation Simulator Stylesheet
+   FARM EMPIRE - Pixel Art Top-Down Basic Theme & HUD Overlay Stylesheet
    ========================================================================== */
 
 :root {
-    --bg-dark: #0f172a;
-    --card-bg: rgba(15, 23, 42, 0.85);
-    --card-border: rgba(255, 255, 255, 0.12);
-    --accent-gold: #f59e0b;
+    --bg-dark: #09111e;
+    --card-bg: rgba(15, 23, 42, 0.88);
+    --card-border: rgba(255, 255, 255, 0.16);
+    --accent-gold: #fbbf24;
+    --accent-gold-dark: #d97706;
     --accent-green: #10b981;
-    --accent-red: #ef4444;
-    --accent-blue: #3b82f6;
-    --accent-purple: #8b5cf6;
+    --accent-green-bright: #34d399;
+    --accent-red: #f87171;
+    --accent-blue: #38bdf8;
+    --accent-purple: #a855f7;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
     --font-primary: 'Outfit', sans-serif;
@@ -52,7 +54,7 @@ html, body {
     width: 100%;
     height: 100%;
     z-index: 1;
-    background-color: #1e293b;
+    background-color: #0d192b;
     display: block;
 }
 
@@ -74,31 +76,33 @@ html, body {
 .hud-brand {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     background: var(--card-bg);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(14px);
     border: 1px solid var(--card-border);
-    padding: 8px 16px;
+    padding: 8px 18px;
     border-radius: 24px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 
 .logo-icon {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
 
 .logo-text {
     font-weight: 900;
-    font-size: 1rem;
-    letter-spacing: 1px;
-    background: linear-gradient(135deg, #fcd34d, #f59e0b);
+    font-size: 1.05rem;
+    letter-spacing: 1.2px;
+    background: linear-gradient(135deg, #fef08a, #fbbf24, #f59e0b);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
 }
 
 .hud-center-stats, .hud-right-stats {
     display: flex;
-    gap: 12px;
+    gap: 14px;
     align-items: center;
 }
 
@@ -106,18 +110,20 @@ html, body {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     background: var(--card-bg);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(14px);
     border: 1px solid var(--card-border);
-    padding: 8px 16px;
+    padding: 8px 18px;
     border-radius: 20px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.15);
     overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .pill-icon {
-    font-size: 1.3rem;
+    font-size: 1.35rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
 }
 
 .pill-body {
@@ -128,19 +134,20 @@ html, body {
 .pill-label {
     font-size: 0.65rem;
     font-weight: 800;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.9px;
     color: var(--text-muted);
 }
 
 .pill-value {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: 900;
     color: #ffffff;
 }
 
 /* Special Pill Styling */
 .monthly-timer-pill {
-    border-color: rgba(245, 158, 11, 0.4);
+    border-color: rgba(251, 191, 36, 0.45);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(245, 158, 11, 0.12));
 }
 .monthly-timer-pill .pill-value {
     color: var(--accent-gold);
@@ -151,25 +158,29 @@ html, body {
     left: 0;
     height: 4px;
     width: 100%;
-    background: var(--accent-gold);
+    background: linear-gradient(90deg, #f59e0b, #fef08a);
+    box-shadow: 0 0 8px #f59e0b;
     transition: width 0.2s linear;
 }
 
 .loan-pill {
-    border-color: rgba(239, 68, 68, 0.4);
+    border-color: rgba(248, 113, 113, 0.45);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(239, 68, 68, 0.12));
 }
 .loan-pill .pill-value {
     color: #fca5a5;
 }
 
 .bank-pill {
-    border-color: rgba(16, 185, 129, 0.5);
-    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.6);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(15, 23, 42, 0.9));
     transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
 }
 .bank-pill .pill-value {
     color: #6ee7b7;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
+    text-shadow: 0 0 10px rgba(52, 211, 153, 0.4);
 }
 
 /* Pulsing alert for urgent loan deadline */
@@ -177,8 +188,8 @@ html, body {
     animation: pulse-border 0.8s infinite alternate;
 }
 @keyframes pulse-border {
-    0% { border-color: var(--accent-red); box-shadow: 0 0 10px rgba(239,68,68,0.5); }
-    100% { border-color: #fca5a5; box-shadow: 0 0 25px rgba(239,68,68,0.9); }
+    0% { border-color: var(--accent-red); box-shadow: 0 0 12px rgba(248, 113, 113, 0.6); }
+    100% { border-color: #fca5a5; box-shadow: 0 0 28px rgba(248, 113, 113, 0.9); }
 }
 
 /* --------------------------------------------------------------------------
@@ -199,16 +210,18 @@ html, body {
     display: flex;
     flex-direction: column;
     background: var(--card-bg);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
     border: 1px solid var(--card-border);
-    padding: 8px 14px;
-    border-radius: 14px;
+    padding: 8px 16px;
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
 }
 
 .hint-key {
     font-size: 0.7rem;
     font-weight: 800;
     color: var(--accent-gold);
+    letter-spacing: 0.5px;
 }
 
 .hint-desc {
@@ -221,19 +234,21 @@ html, body {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     color: #fff;
-    width: 44px;
-    height: 44px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.15s ease, background 0.2s ease;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
 }
 .icon-btn:hover {
     transform: scale(1.1);
-    background: rgba(255,255,255,0.15);
+    background: rgba(255, 255, 255, 0.18);
+    border-color: var(--accent-gold);
 }
 
 /* --------------------------------------------------------------------------
@@ -254,22 +269,23 @@ html, body {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.25);
+    background: rgba(15, 23, 42, 0.6);
+    border: 2px solid rgba(251, 191, 36, 0.4);
     backdrop-filter: blur(8px);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
 }
 
 #joystick-stick {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 50px;
-    height: 50px;
-    margin-left: -25px;
-    margin-top: -25px;
+    width: 52px;
+    height: 52px;
+    margin-left: -26px;
+    margin-top: -26px;
     border-radius: 50%;
-    background: radial-gradient(circle, var(--accent-gold), #d97706);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    background: radial-gradient(circle, var(--accent-gold), var(--accent-gold-dark));
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4);
     transition: transform 0.05s ease-out;
 }
 
@@ -283,20 +299,21 @@ html, body {
     z-index: 20;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     pointer-events: none;
 }
 
 .toast {
     background: rgba(15, 23, 42, 0.95);
     border-left: 4px solid var(--accent-gold);
-    border-radius: 8px;
-    padding: 10px 16px;
+    border-radius: 10px;
+    padding: 12px 18px;
     color: #fff;
-    font-weight: 600;
-    font-size: 0.85rem;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-    animation: slideInRight 0.3s ease-out forwards;
+    font-weight: 700;
+    font-size: 0.88rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    animation: slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .toast.success { border-color: var(--accent-green); }
@@ -304,7 +321,7 @@ html, body {
 .toast.info { border-color: var(--accent-blue); }
 
 @keyframes slideInRight {
-    from { opacity: 0; transform: translateX(40px); }
+    from { opacity: 0; transform: translateX(50px); }
     to { opacity: 1; transform: translateX(0); }
 }
 
@@ -319,8 +336,8 @@ html, body {
     position: absolute;
     inset: 0;
     z-index: 100;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(12px);
+    background: rgba(9, 17, 30, 0.88);
+    backdrop-filter: blur(14px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -335,13 +352,13 @@ html, body {
 }
 
 .modal-card {
-    background: #1e293b;
+    background: linear-gradient(145deg, #1e293b, #0f172a);
     border: 1px solid var(--card-border);
-    border-radius: 24px;
+    border-radius: 28px;
     width: 90%;
-    max-width: 440px;
-    padding: 32px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    max-width: 450px;
+    padding: 36px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.15);
     text-align: center;
     animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -353,18 +370,18 @@ html, body {
 
 .modal-badge {
     display: inline-block;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.7rem;
+    padding: 6px 14px;
+    border-radius: 14px;
+    font-size: 0.75rem;
     font-weight: 900;
     letter-spacing: 1px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
-.modal-badge.danger { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
-.modal-badge.success { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+.modal-badge.danger { background: rgba(248, 113, 113, 0.2); color: var(--accent-red); border: 1px solid rgba(248, 113, 113, 0.4); }
+.modal-badge.success { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.4); }
 
 .modal-card h2 {
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 900;
     margin-bottom: 12px;
     color: #fff;
@@ -373,17 +390,18 @@ html, body {
 .modal-desc {
     color: var(--text-muted);
     font-size: 0.95rem;
-    margin-bottom: 24px;
+    margin-bottom: 26px;
     line-height: 1.5;
 }
 
 .modal-stats {
     display: flex;
     justify-content: space-around;
-    background: rgba(15, 23, 42, 0.6);
-    padding: 16px;
-    border-radius: 16px;
-    margin-bottom: 24px;
+    background: rgba(9, 17, 30, 0.7);
+    padding: 18px;
+    border-radius: 18px;
+    margin-bottom: 26px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .m-stat {
@@ -391,26 +409,26 @@ html, body {
     flex-direction: column;
     gap: 4px;
 }
-.m-stat span { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
-.m-stat strong { font-size: 1.1rem; color: var(--accent-gold); font-weight: 800; }
+.m-stat span { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+.m-stat strong { font-size: 1.15rem; color: var(--accent-gold); font-weight: 900; }
 
 .primary-btn {
     width: 100%;
-    padding: 14px 24px;
-    border-radius: 14px;
+    padding: 16px 24px;
+    border-radius: 16px;
     border: none;
-    background: linear-gradient(135deg, var(--accent-gold), #d97706);
-    color: #fff;
-    font-size: 1rem;
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark));
+    color: #0f172a;
+    font-size: 1.05rem;
     font-weight: 900;
     cursor: pointer;
-    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .primary-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(245, 158, 11, 0.6);
+    box-shadow: 0 14px 32px rgba(245, 158, 11, 0.6);
 }
 
 .primary-btn.pulse {
@@ -418,7 +436,7 @@ html, body {
 }
 @keyframes btn-pulse {
     0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
-    70% { box-shadow: 0 0 0 15px rgba(245, 158, 11, 0); }
+    70% { box-shadow: 0 0 0 16px rgba(245, 158, 11, 0); }
     100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
 }
 

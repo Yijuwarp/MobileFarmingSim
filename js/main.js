@@ -96,6 +96,9 @@ class GameController {
 
         if (economy.isGameOver) return;
 
+        // Engine Particles & Ambient Wildlife Update
+        engine.updateParticles(dt);
+
         // Update Player & Camera
         this.player.update(dt, engine.inputDir);
         engine.updateCamera(this.player.x, this.player.y);
