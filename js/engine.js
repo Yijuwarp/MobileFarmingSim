@@ -1,6 +1,48 @@
 /* ==========================================================================
-   FARM EMPIRE - Game Engine, Canvas Renderer & Input Controller
+   FARM EMPIRE - Game Engine, Canvas Renderer & Sprout Lands Asset Manager
    ========================================================================== */
+
+class AssetManager {
+    constructor() {
+        this.assets = {};
+        this.loadedCount = 0;
+        this.totalCount = 0;
+    }
+
+    loadImages() {
+        const manifest = {
+            char: 'assets/sprout_lands/Basic Charakter Spritesheet.png',
+            house: 'assets/sprout_lands/Wooden House.png',
+            plants: 'assets/sprout_lands/Basic Plants.png',
+            grass: 'assets/sprout_lands/Grass.png',
+            dirt: 'assets/sprout_lands/Dirt.png',
+            paths: 'assets/sprout_lands/Paths.png',
+            fences: 'assets/sprout_lands/Fences.png',
+            furniture: 'assets/sprout_lands/Basic Furniture.png',
+            chest: 'assets/sprout_lands/Chest.png',
+            corn: 'assets/sprout_lands/Corn.png',
+            tomato: 'assets/sprout_lands/Tomato.png'
+        };
+
+        this.totalCount = Object.keys(manifest).length;
+
+        for (const [key, src] of Object.entries(manifest)) {
+            const img = new Image();
+            img.src = src;
+            img.onload = () => {
+                this.loadedCount++;
+            };
+            this.assets[key] = img;
+        }
+    }
+
+    get(key) {
+        return this.assets[key];
+    }
+}
+
+const assets = new AssetManager();
+assets.loadImages();
 
 class GameEngine {
     constructor() {
@@ -114,27 +156,72 @@ class GameEngine {
     }
 
     drawFarmBackground() {
-        this.ctx.fillStyle = '#15803d'; // Rich Farm Grass Green
-        this.ctx.fillRect(0, 0, this.width, this.height);
+        // Pixel-Art Crisp Scaling
+        this.ctx.imageSmoothingEnabled = false;
+
+        const sprGrass = assets.get('grass');
+        const sprPaths = assets.get('paths');
+        const sprFences = assets.get('fences');
 
         this.ctx.save();
         this.ctx.translate(-this.camera.x, -this.camera.y);
 
-        // Draw Dirt Roads & Pathways
-        this.ctx.fillStyle = '#b45309';
-        // Main Horizontal Highway (connects Grain Patch, Chicken Coop, Market Stall)
-        this.ctx.fillRect(150, 320, 1200, 45);
-        // Main Vertical Central Avenue (connects Coop, Mayo Machine, Cheese Vat)
-        this.ctx.fillRect(730, 100, 45, 800);
+        // 1. Render Sprout Lands Grass Tile Grid
+        const tileSize = 48; // Scaled 3x from 16x16
+        const startTileX = Math.floor(this.camera.x / tileSize) * tileSize - tileSize;
+        const endTileX = this.camera.x + this.width + tileSize * 2;
+        const startTileY = Math.floor(this.camera.y / tileSize) * tileSize - tileSize;
+        const endTileY = this.camera.y + this.height + tileSize * 2;
 
-        // Sub-Paths to Side Buildings
-        this.ctx.fillRect(230, 320, 40, 200); // Path to Cow Pasture
-        this.ctx.fillRect(1230, 320, 40, 200); // Path to Bank Desk
+        for (let x = startTileX; x < endTileX; x += tileSize) {
+            for (let y = startTileY; y < endTileY; y += tileSize) {
+                if (sprGrass && sprGrass.complete) {
+                    this.ctx.drawImage(sprGrass, 0, 0, 16, 16, x, y, tileSize, tileSize);
+                } else {
+                    this.ctx.fillStyle = '#5c9447';
+                    this.ctx.fillRect(x, y, tileSize, tileSize);
+                }
+            }
+        }
 
-        // Farm Boundary Border
-        this.ctx.strokeStyle = '#78350f';
-        this.ctx.lineWidth = 8;
-        this.ctx.strokeRect(80, 40, 1340, 920);
+        // 2. Render Sprout Lands Paths
+        const pathCoords = [
+            { x: 150, y: 320, w: 1200, h: 45 },
+            { x: 730, y: 100, w: 45, h: 800 },
+            { x: 230, y: 320, w: 40, h: 200 },
+            { x: 1230, y: 320, w: 40, h: 200 }
+        ];
+
+        pathCoords.forEach(p => {
+            if (sprPaths && sprPaths.complete) {
+                for (let px = p.x; px < p.x + p.w; px += 32) {
+                    for (let py = p.y; py < p.y + p.h; py += 32) {
+                        this.ctx.drawImage(sprPaths, 0, 0, 16, 16, px, py, 32, 32);
+                    }
+                }
+            } else {
+                this.ctx.fillStyle = '#b45309';
+                this.ctx.fillRect(p.x, p.y, p.w, p.h);
+            }
+        });
+
+        // 3. Render Farm Perimeter Fences
+        if (sprFences && sprFences.complete) {
+            // Horizontal top/bottom fences
+            for (let fx = 80; fx < 1420; fx += 32) {
+                this.ctx.drawImage(sprFences, 0, 0, 16, 16, fx, 40, 32, 32);
+                this.ctx.drawImage(sprFences, 0, 0, 16, 16, fx, 960, 32, 32);
+            }
+            // Vertical left/right fences
+            for (let fy = 40; fy < 960; fy += 32) {
+                this.ctx.drawImage(sprFences, 0, 0, 16, 16, 80, fy, 32, 32);
+                this.ctx.drawImage(sprFences, 0, 0, 16, 16, 1420, fy, 32, 32);
+            }
+        } else {
+            this.ctx.strokeStyle = '#78350f';
+            this.ctx.lineWidth = 8;
+            this.ctx.strokeRect(80, 40, 1340, 920);
+        }
 
         this.ctx.restore();
     }

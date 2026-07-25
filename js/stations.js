@@ -1,5 +1,5 @@
 /* ==========================================================================
-   FARM EMPIRE - Farm Stations & Stand-on Decision Action Pads (Zero Overlap)
+   FARM EMPIRE - Farm Stations with Sprout Lands Pixel-Art Assets
    ========================================================================== */
 
 class ActionPad {
@@ -96,7 +96,7 @@ class ActionPad {
 }
 
 /* --------------------------------------------------------------------------
-   Farm Station Modules (Spacious & Clean Layout)
+   Farm Station Modules with Sprout Lands Pixel-Art Sprites
    -------------------------------------------------------------------------- */
 class GrainStation {
     constructor(x, y) {
@@ -106,7 +106,6 @@ class GrainStation {
         this.maxStock = 50;
         this.growTimer = 0;
 
-        // Action Pads placed cleanly in front (y + 80)
         this.harvestPad = new ActionPad('harvest_grain', 'Harvest Feed', x - 40, y + 80, 32, 0, 0.25, (player) => {
             if (this.feedStock > 0 && player.addItem('wheat')) {
                 this.feedStock -= 1;
@@ -144,28 +143,38 @@ class GrainStation {
     }
 
     draw(ctx) {
-        // Field Plot Box
-        ctx.fillStyle = '#d97706';
-        ctx.fillRect(this.x - 70, this.y - 45, 140, 80);
-        ctx.strokeStyle = '#b45309';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(this.x - 70, this.y - 45, 140, 80);
+        ctx.save();
+        const sprDirt = assets.get('dirt');
+        const sprPlants = assets.get('plants');
 
-        // Wheat Stalks inside field
-        for (let i = 0; i < Math.min(this.feedStock, 18); i++) {
-            const wx = this.x - 55 + (i % 6) * 22;
-            const wy = this.y - 30 + Math.floor(i / 6) * 22;
-            ctx.fillStyle = '#f59e0b';
-            ctx.beginPath();
-            ctx.arc(wx, wy, 6, 0, Math.PI * 2);
-            ctx.fill();
+        // Draw Sprout Lands Tilled Soil Grid
+        if (sprDirt && sprDirt.complete) {
+            for (let px = -60; px <= 40; px += 32) {
+                for (let py = -40; py <= 20; py += 32) {
+                    ctx.drawImage(sprDirt, 0, 0, 16, 16, this.x + px, this.y + py, 32, 32);
+                }
+            }
+        } else {
+            ctx.fillStyle = '#d97706';
+            ctx.fillRect(this.x - 70, this.y - 45, 140, 80);
         }
 
-        // Header Title ABOVE plot (y - 55)
+        // Draw Sprout Lands Mature Wheat Crops
+        if (sprPlants && sprPlants.complete) {
+            for (let i = 0; i < Math.min(this.feedStock, 15); i++) {
+                const wx = this.x - 55 + (i % 5) * 26;
+                const wy = this.y - 35 + Math.floor(i / 5) * 26;
+                ctx.drawImage(sprPlants, 32, 0, 16, 16, wx, wy, 24, 24);
+            }
+        }
+
+        // Header Title ABOVE plot
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 12px Outfit';
         ctx.textAlign = 'center';
         ctx.fillText(`GRAIN PATCH (${this.feedStock}/${this.maxStock})`, this.x, this.y - 55);
+
+        ctx.restore();
 
         this.harvestPad.draw(ctx);
         this.hirePad.draw(ctx);
@@ -182,7 +191,6 @@ class CoopStation {
         this.maxEggs = 25;
         this.layTimer = 0;
 
-        // Action Pads placed cleanly in front (y + 80)
         this.feedPad = new ActionPad('feed_coop', 'Add Feed', x - 50, y + 80, 32, 0, 0.25, (player) => {
             if (this.feedTrough < this.maxFeed && player.removeItem('wheat')) {
                 this.feedTrough += 1;
@@ -227,33 +235,36 @@ class CoopStation {
     }
 
     draw(ctx) {
-        // Coop Building
-        ctx.fillStyle = '#b45309';
-        ctx.fillRect(this.x - 70, this.y - 45, 140, 70);
-        ctx.fillStyle = '#ef4444'; // Roof
+        ctx.save();
+        const sprHouse = assets.get('house');
+
+        // Drop Shadow
         ctx.beginPath();
-        ctx.moveTo(this.x - 80, this.y - 45);
-        ctx.lineTo(this.x, this.y - 70);
-        ctx.lineTo(this.x + 80, this.y - 45);
-        ctx.closePath();
+        ctx.ellipse(this.x, this.y + 20, 60, 16, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
         ctx.fill();
 
-        // Hens inside
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '16px Outfit';
-        ctx.textAlign = 'center';
-        ctx.fillText('🐓 🐓 🐓', this.x, this.y - 15);
+        // Draw Sprout Lands Wooden Barn House
+        if (sprHouse && sprHouse.complete) {
+            ctx.drawImage(sprHouse, 0, 0, 48, 48, this.x - 60, this.y - 65, 120, 120);
+        } else {
+            ctx.fillStyle = '#b45309';
+            ctx.fillRect(this.x - 70, this.y - 45, 140, 70);
+        }
 
-        // Status Badge Pill BELOW building (y + 35)
+        // Status Badge Pill BELOW building
         ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-        ctx.fillRect(this.x - 75, this.y + 28, 150, 20);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.fillRect(this.x - 75, this.y + 40, 150, 20);
+        ctx.strokeStyle = '#f59e0b';
         ctx.lineWidth = 1;
-        ctx.strokeRect(this.x - 75, this.y + 28, 150, 20);
+        ctx.strokeRect(this.x - 75, this.y + 40, 150, 20);
 
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 10px Outfit';
-        ctx.fillText(`FEED: ${this.feedTrough}/${this.maxFeed} | EGGS: ${this.eggStock}/${this.maxEggs}`, this.x, this.y + 42);
+        ctx.textAlign = 'center';
+        ctx.fillText(`FEED: ${this.feedTrough}/${this.maxFeed} | EGGS: ${this.eggStock}/${this.maxEggs}`, this.x, this.y + 54);
+
+        ctx.restore();
 
         this.feedPad.draw(ctx);
         this.collectPad.draw(ctx);
@@ -265,7 +276,6 @@ class MarketStall {
         this.x = x;
         this.y = y;
 
-        // Action Pads placed cleanly in front (y + 80)
         this.sellPad = new ActionPad('sell_stall', 'Sell Products', x - 40, y + 80, 34, 0, 0.2, (player) => {
             const item = player.removeItem();
             if (item) {
@@ -322,17 +332,26 @@ class MarketStall {
     }
 
     draw(ctx) {
-        // Stall Structure
+        ctx.save();
+        const sprChest = assets.get('chest');
+
+        // Stall Base
         ctx.fillStyle = '#0f172a';
         ctx.fillRect(this.x - 60, this.y - 40, 120, 60);
         ctx.fillStyle = '#3b82f6';
         ctx.fillRect(this.x - 65, this.y - 50, 130, 14);
 
-        // Header Title ABOVE awning (y - 58)
+        if (sprChest && sprChest.complete) {
+            ctx.drawImage(sprChest, 0, 0, 16, 16, this.x - 24, this.y - 25, 48, 48);
+        }
+
+        // Header Title ABOVE awning
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 12px Outfit';
         ctx.textAlign = 'center';
         ctx.fillText('ROADSIDE MARKET', this.x, this.y - 58);
+
+        ctx.restore();
 
         this.sellPad.draw(ctx);
         this.hirePad.draw(ctx);
@@ -639,7 +658,6 @@ class BankDesk {
         this.x = x;
         this.y = y;
 
-        // Action Pad placed cleanly in front (y + 75)
         this.payPad = new ActionPad('pay_loan', 'Pay $500 Loan', x, y + 75, 36, 0, 0.6, () => {
             economy.payDownLoan(500);
         }, '🏛️');

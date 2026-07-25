@@ -1,5 +1,5 @@
 /* ==========================================================================
-   FARM EMPIRE - Game Entities (Player, Dedicated Route Helpers, Customers, Particles)
+   FARM EMPIRE - Game Entities with Sprout Lands Pixel-Art Character Sprites
    ========================================================================== */
 
 class Player {
@@ -37,17 +37,18 @@ class Player {
             this.x += this.vx * dt;
             this.y += this.vy * dt;
 
-            // Facing direction
+            // Facing direction for Sprout Lands sprite sheet
             if (Math.abs(dx) > Math.abs(dy)) {
                 this.facing = dx > 0 ? 'right' : 'left';
             } else {
                 this.facing = dy > 0 ? 'down' : 'up';
             }
 
-            this.walkCycle += dt * 10;
+            this.walkCycle += dt * 8;
         } else {
             this.vx = 0;
             this.vy = 0;
+            this.walkCycle = 0;
         }
     }
 
@@ -84,45 +85,47 @@ class Player {
 
     draw(ctx) {
         ctx.save();
-        ctx.translate(this.x, this.y);
 
-        // Player Shadow
+        // 1. Player Drop Shadow
         ctx.beginPath();
-        ctx.ellipse(0, 14, 18, 8, 0, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+        ctx.ellipse(this.x, this.y + 14, 16, 7, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
         ctx.fill();
 
-        // Player Body Bobbing
-        const bob = Math.sin(this.walkCycle) * 3;
+        // 2. Render Sprout Lands Farmer Character Sprite Sheet
+        const sprChar = assets.get('char');
+        if (sprChar && sprChar.complete) {
+            // Facing row: 0=down, 1=up, 2=left, 3=right
+            let facingRow = 0;
+            if (this.facing === 'up') facingRow = 1;
+            else if (this.facing === 'left') facingRow = 2;
+            else if (this.facing === 'right') facingRow = 3;
 
-        // Player Body (Farmer Overalls)
-        ctx.beginPath();
-        ctx.arc(0, -5 + bob, 16, 0, Math.PI * 2);
-        ctx.fillStyle = '#3b82f6'; // Blue overalls
-        ctx.fill();
-        ctx.strokeStyle = '#1e3a8a';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+            const frame = Math.floor(this.walkCycle) % 4;
+            const srcX = frame * 48;
+            const srcY = facingRow * 48;
 
-        // Farmer Straw Hat
-        ctx.beginPath();
-        ctx.ellipse(0, -18 + bob, 22, 10, 0, 0, Math.PI * 2);
-        ctx.fillStyle = '#f59e0b'; // Gold hat brim
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(0, -22 + bob, 11, 0, Math.PI * 2);
-        ctx.fillStyle = '#d97706'; // Crown
-        ctx.fill();
+            ctx.drawImage(sprChar, srcX, srcY, 48, 48, this.x - 30, this.y - 42, 60, 60);
+        } else {
+            // Fallback circle farmer
+            const bob = Math.sin(this.walkCycle) * 3;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y - 5 + bob, 16, 0, Math.PI * 2);
+            ctx.fillStyle = '#3b82f6';
+            ctx.fill();
+        }
 
-        // Capacity Indicator Above Head
         ctx.restore();
+
+        // 3. Render Stack of Carried Items
+        const bob = Math.sin(this.walkCycle) * 2;
         this.drawCarriedItemsStack(ctx, bob);
     }
 
     drawCarriedItemsStack(ctx, bob) {
         if (this.carryStack.length === 0) return;
 
-        const startY = this.y - 32 + bob;
+        const startY = this.y - 40 + bob;
         this.carryStack.forEach((item, idx) => {
             const itemY = startY - (idx * 14);
             const wiggle = Math.sin(this.walkCycle + idx) * 2;
@@ -133,35 +136,36 @@ class Player {
         // Stack size badge
         ctx.fillStyle = '#0f172a';
         ctx.beginPath();
-        ctx.arc(this.x + 22, this.y - 30, 10, 0, Math.PI * 2);
+        ctx.arc(this.x + 22, this.y - 35, 10, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 10px Outfit';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(`${this.carryStack.length}/${this.capacity}`, this.x + 22, this.y - 30);
+        ctx.fillText(`${this.carryStack.length}/${this.capacity}`, this.x + 22, this.y - 35);
     }
 }
 
 /* --------------------------------------------------------------------------
-   Dedicated Route Helper NPC
+   Dedicated Route Helper NPC (Sprout Lands Styled)
    -------------------------------------------------------------------------- */
 class RouteHelper {
     constructor(id, name, sourcePos, destPos, itemType, playerSpeed) {
         this.id = id;
         this.name = name;
-        this.sourcePos = sourcePos; // {x, y, stationRef}
-        this.destPos = destPos;     // {x, y, stationRef}
+        this.sourcePos = sourcePos;
+        this.destPos = destPos;
         this.itemType = itemType;
-        this.speed = playerSpeed * 0.33; // Exactly 1/3 of player speed!
+        this.speed = playerSpeed * 0.33;
 
         this.x = sourcePos.x;
         this.y = sourcePos.y;
-        this.target = 'dest'; // 'source' or 'dest'
+        this.target = 'dest';
         this.carriedItem = null;
-        this.capacity = 1; // Carries 1 item at a time per route
+        this.capacity = 1;
+        this.facing = 'down';
         this.walkCycle = 0;
-        this.state = 'walking'; // 'walking', 'waiting'
+        this.state = 'walking';
         this.waitTimer = 0;
     }
 
@@ -180,18 +184,23 @@ class RouteHelper {
         const dist = Math.hypot(dx, dy);
 
         if (dist < 10) {
-            // Reached Station Node
             this.handleStationArrival();
         } else {
             this.x += (dx / dist) * this.speed * dt;
             this.y += (dy / dist) * this.speed * dt;
+
+            if (Math.abs(dx) > Math.abs(dy)) {
+                this.facing = dx > 0 ? 'right' : 'left';
+            } else {
+                this.facing = dy > 0 ? 'down' : 'up';
+            }
+
             this.walkCycle += dt * 6;
         }
     }
 
     handleStationArrival() {
         if (this.target === 'dest') {
-            // Arrived at destination station -> Deposit item
             if (this.carriedItem) {
                 const deposited = this.destPos.stationRef.receiveItemFromWorker(this.carriedItem);
                 if (deposited) {
@@ -201,9 +210,8 @@ class RouteHelper {
             }
             this.target = 'source';
             this.state = 'waiting';
-            this.waitTimer = 0.5; // Short pause at station
+            this.waitTimer = 0.5;
         } else {
-            // Arrived at source station -> Pick item
             if (!this.carriedItem) {
                 const picked = this.sourcePos.stationRef.giveItemToWorker(this.itemType);
                 if (picked) {
@@ -219,49 +227,46 @@ class RouteHelper {
 
     draw(ctx) {
         ctx.save();
-        ctx.translate(this.x, this.y);
 
         // Helper Shadow
         ctx.beginPath();
-        ctx.ellipse(0, 10, 14, 6, 0, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.ellipse(this.x, this.y + 12, 14, 6, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
         ctx.fill();
 
-        const bob = Math.sin(this.walkCycle) * 2;
+        // Sprout Lands Helper Sprite
+        const sprChar = assets.get('char');
+        if (sprChar && sprChar.complete) {
+            let facingRow = 0;
+            if (this.facing === 'up') facingRow = 1;
+            else if (this.facing === 'left') facingRow = 2;
+            else if (this.facing === 'right') facingRow = 3;
 
-        // Helper Body (Green Apron)
-        ctx.beginPath();
-        ctx.arc(0, -4 + bob, 12, 0, Math.PI * 2);
-        ctx.fillStyle = '#10b981'; // Helper Emerald Green
-        ctx.fill();
-        ctx.strokeStyle = '#047857';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+            const frame = Math.floor(this.walkCycle) % 4;
+            const srcX = frame * 48;
+            const srcY = facingRow * 48;
 
-        // Helper Cap
-        ctx.beginPath();
-        ctx.ellipse(0, -14 + bob, 14, 6, 0, 0, Math.PI * 2);
-        ctx.fillStyle = '#6ee7b7';
-        ctx.fill();
+            ctx.drawImage(sprChar, srcX, srcY, 48, 48, this.x - 24, this.y - 36, 48, 48);
+        }
 
-        // Helper Label Badge (Floats cleanly above cap)
+        // Helper Label Badge
         ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-        ctx.fillRect(-26, -42, 52, 14);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.fillRect(this.x - 26, this.y - 44, 52, 14);
+        ctx.strokeStyle = '#10b981';
         ctx.lineWidth = 1;
-        ctx.strokeRect(-26, -42, 52, 14);
+        ctx.strokeRect(this.x - 26, this.y - 44, 52, 14);
 
         ctx.fillStyle = '#10b981';
         ctx.font = '900 8px Outfit';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('HELPER 1/3', 0, -35);
+        ctx.fillText('HELPER', this.x, this.y - 37);
 
         ctx.restore();
 
-        // Draw Carried Item Above Helper
+        // Carried Item
         if (this.carriedItem) {
-            drawItemIcon(ctx, this.carriedItem, this.x, this.y - 50 + bob);
+            drawItemIcon(ctx, this.carriedItem, this.x, this.y - 52);
         }
     }
 }
@@ -276,9 +281,10 @@ class Customer {
         this.stallX = stallX;
         this.stallY = stallY;
         this.speed = 100;
-        this.state = 'approaching'; // 'approaching', 'buying', 'leaving'
+        this.state = 'approaching';
         this.desiredItem = Math.random() > 0.4 ? 'mayo' : 'egg';
-        this.patience = 12; // Seconds
+        this.patience = 12;
+        this.facing = 'down';
         this.walkCycle = 0;
         this.isDone = false;
     }
@@ -294,6 +300,13 @@ class Customer {
             } else {
                 this.x += (dx / dist) * this.speed * dt;
                 this.y += (dy / dist) * this.speed * dt;
+
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    this.facing = dx > 0 ? 'right' : 'left';
+                } else {
+                    this.facing = dy > 0 ? 'down' : 'up';
+                }
+
                 this.walkCycle += dt * 8;
             }
         } else if (this.state === 'buying') {
@@ -302,10 +315,11 @@ class Customer {
             if (bought) {
                 this.state = 'leaving';
             } else if (this.patience <= 0) {
-                this.state = 'leaving'; // Leaves frustrated
+                this.state = 'leaving';
             }
         } else if (this.state === 'leaving') {
             this.y += this.speed * dt;
+            this.facing = 'down';
             this.walkCycle += dt * 8;
             if (this.y > this.stallY + 400) {
                 this.isDone = true;
@@ -315,29 +329,35 @@ class Customer {
 
     draw(ctx) {
         ctx.save();
-        ctx.translate(this.x, this.y);
 
-        const bob = Math.sin(this.walkCycle) * 2;
-
-        // Customer Body
+        // Customer Shadow
         ctx.beginPath();
-        ctx.arc(0, -4 + bob, 12, 0, Math.PI * 2);
-        ctx.fillStyle = '#8b5cf6'; // Purple shirt
+        ctx.ellipse(this.x, this.y + 10, 12, 5, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
         ctx.fill();
 
-        // Customer Head
-        ctx.beginPath();
-        ctx.arc(0, -16 + bob, 8, 0, Math.PI * 2);
-        ctx.fillStyle = '#fde047';
-        ctx.fill();
+        // Sprout Lands Customer Sprite
+        const sprChar = assets.get('char');
+        if (sprChar && sprChar.complete) {
+            let facingRow = 0;
+            if (this.facing === 'up') facingRow = 1;
+            else if (this.facing === 'left') facingRow = 2;
+            else if (this.facing === 'right') facingRow = 3;
+
+            const frame = Math.floor(this.walkCycle) % 4;
+            const srcX = frame * 48;
+            const srcY = facingRow * 48;
+
+            ctx.drawImage(sprChar, srcX, srcY, 48, 48, this.x - 24, this.y - 36, 48, 48);
+        }
 
         // Desired item speech bubble
         if (this.state === 'buying') {
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(16, -26, 12, 0, Math.PI * 2);
+            ctx.arc(this.x + 16, this.y - 30, 12, 0, Math.PI * 2);
             ctx.fill();
-            drawItemIcon(ctx, this.desiredItem, 16, -26, 12);
+            drawItemIcon(ctx, this.desiredItem, this.x + 16, this.y - 30, 14);
         }
 
         ctx.restore();
@@ -353,7 +373,7 @@ class FloatingText {
         this.x = x;
         this.y = y;
         this.color = color;
-        this.life = 1.0; // 1 second float
+        this.life = 1.0;
     }
 
     update(dt) {
@@ -383,31 +403,31 @@ function drawItemIcon(ctx, type, x, y, size = 16) {
 
     switch (type) {
         case 'wheat':
-            ctx.fillStyle = '#f59e0b'; // Gold
+            ctx.fillStyle = '#f59e0b';
             ctx.beginPath();
             ctx.ellipse(0, 0, half, half * 0.7, Math.PI / 4, 0, Math.PI * 2);
             ctx.fill();
             break;
         case 'egg':
-            ctx.fillStyle = '#f8fafc'; // White egg
+            ctx.fillStyle = '#fffbeb';
             ctx.beginPath();
             ctx.ellipse(0, 0, half * 0.7, half, 0, 0, Math.PI * 2);
             ctx.fill();
             break;
         case 'mayo':
-            ctx.fillStyle = '#fef08a'; // Yellow jar
+            ctx.fillStyle = '#fef08a';
             ctx.fillRect(-half * 0.7, -half, size * 0.7, size);
-            ctx.fillStyle = '#eab308'; // Lid
+            ctx.fillStyle = '#eab308';
             ctx.fillRect(-half * 0.7, -half, size * 0.7, 4);
             break;
         case 'milk':
-            ctx.fillStyle = '#38bdf8'; // Blue bottle
+            ctx.fillStyle = '#38bdf8';
             ctx.fillRect(-half * 0.6, -half * 0.8, size * 0.6, size * 0.9);
-            ctx.fillStyle = '#ffffff'; // White label
+            ctx.fillStyle = '#ffffff';
             ctx.fillRect(-half * 0.6, -half * 0.2, size * 0.6, 6);
             break;
         case 'cheese':
-            ctx.fillStyle = '#fbbf24'; // Cheese wedge
+            ctx.fillStyle = '#fbbf24';
             ctx.beginPath();
             ctx.moveTo(-half, half);
             ctx.lineTo(half, half);
@@ -416,7 +436,7 @@ function drawItemIcon(ctx, type, x, y, size = 16) {
             ctx.fill();
             break;
         case 'artisan_cheese':
-            ctx.fillStyle = '#d97706'; // Gold artisan block
+            ctx.fillStyle = '#d97706';
             ctx.fillRect(-half, -half, size, size);
             ctx.fillStyle = '#fef08a';
             ctx.beginPath();
