@@ -59,6 +59,7 @@ class GameEngine {
         this.customers = [];
 
         this.camera = { x: 0, y: 0 };
+        this.zoom = 1.45; // Zoomed in camera for crisp, intimate arcade view
 
         this.initCanvas();
         this.initInput();
@@ -150,9 +151,11 @@ class GameEngine {
     }
 
     updateCamera(playerX, playerY) {
-        // Smooth camera follow
-        this.camera.x += (playerX - this.width / 2 - this.camera.x) * 0.1;
-        this.camera.y += (playerY - this.height / 2 - this.camera.y) * 0.1;
+        // Smooth camera follow centered with zoom scaling
+        const targetX = playerX - (this.width / (2 * this.zoom));
+        const targetY = playerY - (this.height / (2 * this.zoom));
+        this.camera.x += (targetX - this.camera.x) * 0.1;
+        this.camera.y += (targetY - this.camera.y) * 0.1;
     }
 
     drawFarmBackground() {
@@ -164,14 +167,18 @@ class GameEngine {
         const sprFences = assets.get('fences');
 
         this.ctx.save();
+        this.ctx.scale(this.zoom, this.zoom);
         this.ctx.translate(-this.camera.x, -this.camera.y);
 
         // 1. Render Sprout Lands Grass Tile Grid
         const tileSize = 48; // Scaled 3x from 16x16
+        const scaledW = this.width / this.zoom;
+        const scaledH = this.height / this.zoom;
+
         const startTileX = Math.floor(this.camera.x / tileSize) * tileSize - tileSize;
-        const endTileX = this.camera.x + this.width + tileSize * 2;
+        const endTileX = this.camera.x + scaledW + tileSize * 2;
         const startTileY = Math.floor(this.camera.y / tileSize) * tileSize - tileSize;
-        const endTileY = this.camera.y + this.height + tileSize * 2;
+        const endTileY = this.camera.y + scaledH + tileSize * 2;
 
         for (let x = startTileX; x < endTileX; x += tileSize) {
             for (let y = startTileY; y < endTileY; y += tileSize) {

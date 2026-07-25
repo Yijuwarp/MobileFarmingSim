@@ -188,6 +188,7 @@ class GameController {
 
         const ctx = engine.ctx;
         ctx.save();
+        ctx.scale(engine.zoom, engine.zoom);
         ctx.translate(-engine.camera.x, -engine.camera.y);
 
         // Render Active Stations
