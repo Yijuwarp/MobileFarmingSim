@@ -225,7 +225,9 @@ function spawnRouteHelper(id, name, sourcePos, destPos, itemType) {
 }
 
 function createFloatingText(text, x, y, color = '#f59e0b') {
-    game.floatingTexts.push(new FloatingText(text, x, y, color));
+    if (typeof game !== 'undefined' && game && Array.isArray(game.floatingTexts)) {
+        game.floatingTexts.push(new FloatingText(text, x, y, color));
+    }
 }
 
 function showForeclosureModal(econ) {

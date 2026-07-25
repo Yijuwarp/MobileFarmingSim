@@ -1,0 +1,19 @@
+{
+  "name": "mobile-farming-sim",
+  "version": "1.0.0",
+  "description": "Farm Empire - High Pace Automation Simulator",
+  "main": "js/main.js",
+  "scripts": {
+    "test": "node --test tests/economy.test.js tests/entities.test.js tests/stations.test.js",
+    "start": "npx -y http-server . -p 8080 -c-1"
+  },
+  "keywords": [
+    "farming",
+    "simulator",
+    "arcade",
+    "game",
+    "pixel-art"
+  ],
+  "author": "",
+  "license": "MIT"
+}

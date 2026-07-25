@@ -440,6 +440,8 @@ function showToast(message, type = 'info') {
 
     setTimeout(() => {
         toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
+        setTimeout(() => {
+            if (typeof toast.remove === 'function') toast.remove();
+        }, 300);
     }, 2500);
 }

@@ -115,7 +115,7 @@ class Player {
             ctx.ellipse(this.x, this.y - 24 + bob, 18, 8, 0, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = '#b45309';
-            ctx.fillRect(this.x - 8, t.y - 28 + bob, 16, 6);
+            ctx.fillRect(this.x - 8, this.y - 28 + bob, 16, 6);
         }
 
         ctx.restore();
