@@ -84,6 +84,12 @@ class GameController {
         requestAnimationFrame((time) => this.loop(time));
     }
 
+    getAvailableProducts() {
+        const products = ['egg'];
+        if (this.mayoStation && this.mayoStation.isUnlocked) products.push('mayo');
+        return products;
+    }
+
     update(dt) {
         // Economy Timer Tick
         economy.update(dt);
@@ -94,16 +100,14 @@ class GameController {
         this.player.update(dt, engine.inputDir);
         engine.updateCamera(this.player.x, this.player.y);
 
-        // Update Farm Stations
+        // Update Farm Stations (Focused core loop)
         this.grainStation.update(dt, this.player);
         this.coopStation.update(dt, this.player);
         this.marketStall.update(dt, this.player);
         this.mayoStation.update(dt, this.player);
-        this.cowStation.update(dt, this.player);
-        this.cheeseStation.update(dt, this.player);
         this.bankDesk.update(dt, this.player);
 
-        // Update Route Helpers (1/3 speed dedicated workers)
+        // Update Route Helpers (High throughput dedicated workers)
         this.routeHelpers.forEach(helper => helper.update(dt));
 
         // Update Floating Text Particles
@@ -114,16 +118,32 @@ class GameController {
             }
         }
 
-        // Spawn & Update Market Customers
+        // Spawn & Update Market Customers with queue management & demand filtering
         this.customerTimer += dt;
-        if (this.customerTimer >= 4.0 && this.customers.length < 5) {
-            this.customers.push(new Customer(750, 500, this.marketStall.x, this.marketStall.y));
+        if (this.customerTimer >= 3.5 && this.customers.length < 5) {
+            const availableProducts = this.getAvailableProducts();
+            const requestedItem = availableProducts[Math.floor(Math.random() * availableProducts.length)];
+            const customer = new Customer(
+                1250 + (Math.random() * 40 - 20),
+                480,
+                this.marketStall.x,
+                this.marketStall.y,
+                requestedItem,
+                this.customers.length
+            );
+            this.customers.push(customer);
             this.customerTimer = 0;
         }
 
+        // Update customers and recalculate queue positions
+        let activeQueueIndex = 0;
         for (let i = this.customers.length - 1; i >= 0; i--) {
-            this.customers[i].update(dt, this.marketStall);
-            if (this.customers[i].isDone) {
+            const cust = this.customers[i];
+            if (cust.state === 'approaching' || cust.state === 'waiting') {
+                cust.queueIndex = activeQueueIndex++;
+            }
+            cust.update(dt, this.marketStall);
+            if (cust.isDone) {
                 this.customers.splice(i, 1);
             }
         }
@@ -143,7 +163,10 @@ class GameController {
         if (loanElem) loanElem.innerText = `$${economy.loanPrincipal.toLocaleString()}`;
 
         const remainingSeconds = Math.max(0, Math.ceil(economy.monthTimer));
-        if (timerElem) timerElem.innerText = `${remainingSeconds}s`;
+        const mins = Math.floor(remainingSeconds / 60);
+        const secs = remainingSeconds % 60;
+        const formattedTime = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        if (timerElem) timerElem.innerText = formattedTime;
 
         if (timerBar) {
             const ratio = Math.max(0, economy.monthTimer / economy.monthDurationSeconds);
@@ -167,13 +190,11 @@ class GameController {
         ctx.save();
         ctx.translate(-engine.camera.x, -engine.camera.y);
 
-        // Render Stations
+        // Render Active Stations
         this.grainStation.draw(ctx);
         this.coopStation.draw(ctx);
         this.marketStall.draw(ctx);
         this.mayoStation.draw(ctx);
-        this.cowStation.draw(ctx);
-        this.cheeseStation.draw(ctx);
         this.bankDesk.draw(ctx);
 
         // Render Route Helpers
@@ -196,6 +217,7 @@ class GameController {
 function spawnRouteHelper(id, name, sourcePos, destPos, itemType) {
     const helper = new RouteHelper(id, name, sourcePos, destPos, itemType, game.player.speed);
     game.routeHelpers.push(helper);
+    return helper;
 }
 
 function createFloatingText(text, x, y, color = '#f59e0b') {

@@ -4,11 +4,10 @@
 
 class EconomyManager {
     constructor() {
-        this.initialCash = 2500;
+        this.initialCash = 0;
         this.initialLoan = 10000;
         this.monthlyDues = 1000;
-        this.monthDurationSeconds = 60; // 60s real-time per month
-
+        this.monthDurationSeconds = 300; // 5 minutes (300s) real-time per month
         this.reset();
     }
 

@@ -8,7 +8,7 @@ class Player {
         this.y = y;
         this.radius = 20;
         this.speed = 220; // Pixels per second
-        this.capacity = 5; // Max items carried
+        this.capacity = 10; // Fixed player capacity of 10 items
         this.carryStack = []; // Array of item types: 'wheat', 'egg', 'mayo', 'milk', 'cheese', 'artisan_cheese'
         this.vx = 0;
         this.vy = 0;
@@ -19,7 +19,7 @@ class Player {
     reset(x, y) {
         this.x = x;
         this.y = y;
-        this.capacity = 5;
+        this.capacity = 10;
         this.speed = 220;
         this.carryStack = [];
     }
@@ -122,12 +122,13 @@ class Player {
     drawCarriedItemsStack(ctx, bob) {
         if (this.carryStack.length === 0) return;
 
-        const startY = this.y - 32 + bob;
+        const startY = this.y - 30 + bob;
         this.carryStack.forEach((item, idx) => {
-            const itemY = startY - (idx * 14);
+            // Stack items in a neat slightly overlapping vertical column
+            const itemY = startY - (idx * 10);
             const wiggle = Math.sin(this.walkCycle + idx) * 2;
 
-            drawItemIcon(ctx, item, this.x + wiggle, itemY);
+            drawItemIcon(ctx, item, this.x + wiggle, itemY, 14);
         });
 
         // Stack size badge
@@ -146,6 +147,9 @@ class Player {
 /* --------------------------------------------------------------------------
    Dedicated Route Helper NPC
    -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+   Dedicated Route Helper NPC (Tier 1 Walker -> Tier 2 Wheelbarrow -> Tier 3 Forklift)
+   -------------------------------------------------------------------------- */
 class RouteHelper {
     constructor(id, name, sourcePos, destPos, itemType, playerSpeed) {
         this.id = id;
@@ -153,16 +157,49 @@ class RouteHelper {
         this.sourcePos = sourcePos; // {x, y, stationRef}
         this.destPos = destPos;     // {x, y, stationRef}
         this.itemType = itemType;
-        this.speed = playerSpeed * 0.33; // Exactly 1/3 of player speed!
+        this.playerSpeed = playerSpeed;
 
         this.x = sourcePos.x;
         this.y = sourcePos.y;
-        this.target = 'dest'; // 'source' or 'dest'
-        this.carriedItem = null;
-        this.capacity = 1; // Carries 1 item at a time per route
+        this.target = 'dest'; // Starts at source -> moves to dest
+        this.level = 1; // 1 = Walker (3 cap), 2 = Wheelbarrow (5 cap), 3 = Forklift (10 cap)
+        this.capacity = 3;
+        this.speed = playerSpeed * 0.7;
+        this.carryStack = [];
         this.walkCycle = 0;
         this.state = 'walking'; // 'walking', 'waiting'
         this.waitTimer = 0;
+
+        // Immediately pick up items from source station upon spawn!
+        this.initialPickup();
+    }
+
+    initialPickup() {
+        if (this.sourcePos && this.sourcePos.stationRef) {
+            while (this.carryStack.length < this.capacity) {
+                const picked = this.sourcePos.stationRef.giveItemToWorker(this.itemType);
+                if (picked) {
+                    this.carryStack.push(picked);
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    upgrade() {
+        if (this.level < 3) {
+            this.level++;
+            if (this.level === 2) {
+                this.capacity = 5;
+                this.speed = this.playerSpeed * 1.2;
+                createFloatingText('🛒 WHEELBARROW UNLOCKED (5 Cap)!', this.x, this.y - 45, '#38bdf8');
+            } else if (this.level === 3) {
+                this.capacity = 10;
+                this.speed = this.playerSpeed * 1.8;
+                createFloatingText('🚜 FORKLIFT UNLOCKED (10 Cap)!', this.x, this.y - 45, '#f59e0b');
+            }
+        }
     }
 
     update(dt) {
@@ -185,35 +222,40 @@ class RouteHelper {
         } else {
             this.x += (dx / dist) * this.speed * dt;
             this.y += (dy / dist) * this.speed * dt;
-            this.walkCycle += dt * 6;
+            this.walkCycle += dt * 8;
         }
     }
 
     handleStationArrival() {
         if (this.target === 'dest') {
-            // Arrived at destination station -> Deposit item
-            if (this.carriedItem) {
-                const deposited = this.destPos.stationRef.receiveItemFromWorker(this.carriedItem);
+            // Arrived at destination station -> Deposit carried items
+            while (this.carryStack.length > 0) {
+                const itemToDeposit = this.carryStack[this.carryStack.length - 1];
+                const deposited = this.destPos.stationRef.receiveItemFromWorker(itemToDeposit);
                 if (deposited) {
-                    this.carriedItem = null;
+                    this.carryStack.pop();
                     soundManager.playDropoff();
+                } else {
+                    break; // Station shelf full
                 }
             }
             this.target = 'source';
             this.state = 'waiting';
-            this.waitTimer = 0.5; // Short pause at station
+            this.waitTimer = 0.2; // Fast pause at station
         } else {
-            // Arrived at source station -> Pick item
-            if (!this.carriedItem) {
+            // Arrived at source station -> Pick items up to capacity
+            while (this.carryStack.length < this.capacity) {
                 const picked = this.sourcePos.stationRef.giveItemToWorker(this.itemType);
                 if (picked) {
-                    this.carriedItem = picked;
+                    this.carryStack.push(picked);
                     soundManager.playPickup();
+                } else {
+                    break; // Source empty
                 }
             }
             this.target = 'dest';
             this.state = 'waiting';
-            this.waitTimer = 0.5;
+            this.waitTimer = 0.2;
         }
     }
 
@@ -221,93 +263,203 @@ class RouteHelper {
         ctx.save();
         ctx.translate(this.x, this.y);
 
-        // Helper Shadow
-        ctx.beginPath();
-        ctx.ellipse(0, 10, 14, 6, 0, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.fill();
-
         const bob = Math.sin(this.walkCycle) * 2;
 
-        // Helper Body (Green Apron)
-        ctx.beginPath();
-        ctx.arc(0, -4 + bob, 12, 0, Math.PI * 2);
-        ctx.fillStyle = '#10b981'; // Helper Emerald Green
-        ctx.fill();
-        ctx.strokeStyle = '#047857';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        if (this.level === 1) {
+            // Level 1: Walker (3 capacity)
+            ctx.beginPath();
+            ctx.ellipse(0, 10, 14, 6, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fill();
 
-        // Helper Cap
-        ctx.beginPath();
-        ctx.ellipse(0, -14 + bob, 14, 6, 0, 0, Math.PI * 2);
-        ctx.fillStyle = '#6ee7b7';
-        ctx.fill();
+            // Helper Body
+            ctx.beginPath();
+            ctx.arc(0, -4 + bob, 12, 0, Math.PI * 2);
+            ctx.fillStyle = '#10b981';
+            ctx.fill();
+            ctx.strokeStyle = '#047857';
+            ctx.lineWidth = 2;
+            ctx.stroke();
 
-        // Helper Label Badge (Floats cleanly above cap)
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-        ctx.fillRect(-26, -42, 52, 14);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(-26, -42, 52, 14);
+            // Cap
+            ctx.beginPath();
+            ctx.ellipse(0, -14 + bob, 14, 6, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#6ee7b7';
+            ctx.fill();
 
-        ctx.fillStyle = '#10b981';
-        ctx.font = '900 8px Outfit';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('HELPER 1/3', 0, -35);
+            // Badge
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+            ctx.fillRect(-32, -42, 64, 14);
+            ctx.fillStyle = '#10b981';
+            ctx.font = '900 8px Outfit';
+            ctx.textAlign = 'center';
+            ctx.fillText(`WALKER (${this.carryStack.length}/3)`, 0, -32);
 
-        ctx.restore();
+            ctx.restore();
 
-        // Draw Carried Item Above Helper
-        if (this.carriedItem) {
-            drawItemIcon(ctx, this.carriedItem, this.x, this.y - 50 + bob);
+            // Draw carried stack above head
+            this.carryStack.forEach((item, idx) => {
+                drawItemIcon(ctx, item, this.x, this.y - 48 - (idx * 10) + bob, 14);
+            });
+
+        } else if (this.level === 2) {
+            // Level 2: Wheelbarrow Worker (5 capacity)
+            ctx.beginPath();
+            ctx.ellipse(0, 12, 22, 8, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+            ctx.fill();
+
+            // Wheelbarrow tub
+            ctx.fillStyle = '#b45309';
+            ctx.fillRect(-16, -6, 32, 16);
+            ctx.strokeStyle = '#78350f';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-16, -6, 32, 16);
+
+            // Wheel
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.arc(16, 8, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Worker body behind wheelbarrow
+            ctx.beginPath();
+            ctx.arc(-14, -10 + bob, 10, 0, Math.PI * 2);
+            ctx.fillStyle = '#10b981';
+            ctx.fill();
+
+            // Badge
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+            ctx.fillRect(-35, -38, 70, 14);
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = '900 8px Outfit';
+            ctx.textAlign = 'center';
+            ctx.fillText(`WHEELBARROW (${this.carryStack.length}/5)`, 0, -28);
+
+            ctx.restore();
+
+            // Draw items inside wheelbarrow tub
+            this.carryStack.forEach((item, idx) => {
+                drawItemIcon(ctx, item, this.x - 10 + (idx * 6), this.y - 2, 12);
+            });
+
+        } else if (this.level === 3) {
+            // Level 3: Forklift Vehicle (10 capacity)
+            ctx.beginPath();
+            ctx.ellipse(0, 14, 26, 10, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fill();
+
+            // Yellow Forklift Body
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(-22, -18, 44, 24);
+            ctx.fillStyle = '#d97706';
+            ctx.fillRect(-22, -18, 12, 24); // Rear engine cabin
+
+            // Black Wheels
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(-14, 8, 7, 0, Math.PI * 2);
+            ctx.arc(14, 8, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Lifting Mast
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(18, -32, 4, 38);
+
+            // Badge
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+            ctx.fillRect(-36, -46, 72, 14);
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = '900 8px Outfit';
+            ctx.textAlign = 'center';
+            ctx.fillText(`FORKLIFT (${this.carryStack.length}/10)`, 0, -36);
+
+            ctx.restore();
+
+            // Draw stacked items on forklift front pallet
+            this.carryStack.forEach((item, idx) => {
+                const px = this.x + 26;
+                const py = this.y - 2 - (idx * 8);
+                drawItemIcon(ctx, item, px, py, 14);
+            });
         }
     }
 }
 
 /* --------------------------------------------------------------------------
-   Market Customer NPC
+   Market Customer NPC (Queue & Patience Bar)
    -------------------------------------------------------------------------- */
 class Customer {
-    constructor(x, y, stallX, stallY) {
+    constructor(x, y, stallX, stallY, desiredItem, queueIndex = 0) {
         this.x = x;
         this.y = y;
         this.stallX = stallX;
         this.stallY = stallY;
-        this.speed = 100;
-        this.state = 'approaching'; // 'approaching', 'buying', 'leaving'
-        this.desiredItem = Math.random() > 0.4 ? 'mayo' : 'egg';
-        this.patience = 12; // Seconds
+        this.queueIndex = queueIndex;
+        this.speed = 120;
+        this.state = 'approaching'; // 'approaching', 'waiting', 'leaving'
+        this.desiredItem = desiredItem;
+        this.maxPatience = 18; // 18 seconds for player to intervene
+        this.patience = this.maxPatience;
         this.walkCycle = 0;
         this.isDone = false;
+        this.isSatisfied = false;
+        this.shirtColor = ['#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#a855f7'][Math.floor(Math.random() * 5)];
+    }
+
+    getTargetPosition() {
+        // Line up horizontally in front of the market stall
+        const queueOffsetX = (this.queueIndex - 1.5) * 36;
+        return {
+            x: this.stallX + queueOffsetX,
+            y: this.stallY + 65
+        };
     }
 
     update(dt, stall) {
+        const target = this.getTargetPosition();
+
         if (this.state === 'approaching') {
-            const dx = this.stallX - this.x;
-            const dy = (this.stallY + 40) - this.y;
+            const dx = target.x - this.x;
+            const dy = target.y - this.y;
             const dist = Math.hypot(dx, dy);
 
-            if (dist < 10) {
-                this.state = 'buying';
+            if (dist < 8) {
+                this.x = target.x;
+                this.y = target.y;
+                this.state = 'waiting';
             } else {
                 this.x += (dx / dist) * this.speed * dt;
                 this.y += (dy / dist) * this.speed * dt;
                 this.walkCycle += dt * 8;
             }
-        } else if (this.state === 'buying') {
+        } else if (this.state === 'waiting') {
+            // Adjust smooth position if queueIndex updated
+            const dx = target.x - this.x;
+            const dy = target.y - this.y;
+            if (Math.hypot(dx, dy) > 2) {
+                this.x += dx * dt * 5;
+                this.y += dy * dt * 5;
+            }
+
             this.patience -= dt;
-            const bought = stall.sellToCustomer(this.desiredItem);
+
+            // Attempt to buy desired item from market inventory
+            const bought = stall.fulfillCustomerOrder(this.desiredItem);
             if (bought) {
                 this.state = 'leaving';
+                this.isSatisfied = true;
+                createFloatingText(`😊 Cash Paid!`, this.x, this.y - 45, '#10b981');
             } else if (this.patience <= 0) {
                 this.state = 'leaving'; // Leaves frustrated
+                this.isSatisfied = false;
+                createFloatingText(`😠 Out of stock!`, this.x, this.y - 45, '#ef4444');
             }
         } else if (this.state === 'leaving') {
             this.y += this.speed * dt;
             this.walkCycle += dt * 8;
-            if (this.y > this.stallY + 400) {
+            if (this.y > this.stallY + 350) {
                 this.isDone = true;
             }
         }
@@ -322,8 +474,11 @@ class Customer {
         // Customer Body
         ctx.beginPath();
         ctx.arc(0, -4 + bob, 12, 0, Math.PI * 2);
-        ctx.fillStyle = '#8b5cf6'; // Purple shirt
+        ctx.fillStyle = this.shirtColor;
         ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
 
         // Customer Head
         ctx.beginPath();
@@ -331,13 +486,34 @@ class Customer {
         ctx.fillStyle = '#fde047';
         ctx.fill();
 
-        // Desired item speech bubble
-        if (this.state === 'buying') {
+        if (this.state === 'waiting' || this.state === 'approaching') {
+            // Desired item speech bubble
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(16, -26, 12, 0, Math.PI * 2);
+            ctx.arc(14, -30, 13, 0, Math.PI * 2);
             ctx.fill();
-            drawItemIcon(ctx, this.desiredItem, 16, -26, 12);
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            drawItemIcon(ctx, this.desiredItem, 14, -30, 14);
+
+            // Patience Bar above head
+            const barWidth = 28;
+            const barHeight = 4;
+            const barX = -barWidth / 2;
+            const barY = -44;
+            const patienceRatio = Math.max(0, this.patience / this.maxPatience);
+
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+            ctx.fillRect(barX - 1, barY - 1, barWidth + 2, barHeight + 2);
+
+            let barColor = '#10b981'; // Green
+            if (patienceRatio < 0.5) barColor = '#f59e0b'; // Yellow
+            if (patienceRatio < 0.25) barColor = '#ef4444'; // Red
+
+            ctx.fillStyle = barColor;
+            ctx.fillRect(barX, barY, barWidth * patienceRatio, barHeight);
         }
 
         ctx.restore();
