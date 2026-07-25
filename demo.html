@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Empire - 3 Complete Asset Options Side-by-Side</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --accent-green: #10b981;
+            --accent-gold: #f59e0b;
+            --accent-blue: #3b82f6;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 16px;
+            max-width: 1000px;
+        }
+
+        header h1 {
+            font-size: 2.1rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f59e0b, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .checklist-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .check-pill {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .side-by-side-container {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--panel-bg);
+            border-radius: 16px;
+            border: 1px solid #334155;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .split-view-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            width: 100%;
+            height: 480px;
+            background: #000;
+        }
+
+        .pane {
+            position: relative;
+            border-right: 2px solid #334155;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pane:last-child {
+            border-right: none;
+        }
+
+        .pane-header {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 8px 12px;
+            border-radius: 10px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .pane-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--accent-gold);
+        }
+
+        .pane-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        .demo-footer-controls {
+            padding: 14px 20px;
+            background: #111827;
+            border-top: 1px solid #1f2937;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .options-comparison-table {
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .option-card {
+            background: var(--panel-bg);
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .option-card h3 {
+            font-size: 1.1rem;
+            color: var(--accent-gold);
+            margin-bottom: 6px;
+        }
+
+        .option-card p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .option-card ul {
+            padding-left: 16px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>↔️ Side-by-Side Asset Option Comparison</h1>
+        <p>Use <strong>WASD / Arrow Keys</strong> or <strong>Click / Drag</strong> to walk the farmer simultaneously across all 3 asset options!</p>
+    </header>
+
+    <div class="checklist-bar">
+        <div class="check-pill">✓ Player & Workers</div>
+        <div class="check-pill">✓ Chickens & Cows</div>
+        <div class="check-pill">✓ Wheat Crops</div>
+        <div class="check-pill">✓ Mayo & Cheese Stations</div>
+        <div class="check-pill">✓ Market & Bank</div>
+        <div class="check-pill">✓ Product Icons</div>
+    </div>
+
+    <div class="side-by-side-container">
+        <div class="split-view-grid">
+            <!-- Pane A: Sprout Lands -->
+            <div class="pane">
+                <div class="pane-header">
+                    <div class="pane-title">🌾 Option A: Sprout Lands</div>
+                    <div class="pane-sub">16x16 Cozy Pixel Art (Stardew Style)</div>
+                </div>
+                <canvas id="canvasA"></canvas>
+            </div>
+
+            <!-- Pane B: Kenney Tiny Town -->
+            <div class="pane">
+                <div class="pane-header">
+                    <div class="pane-title">🚜 Option B: Kenney Tiny Farm</div>
+                    <div class="pane-sub">CC0 16x16 Clean 2D Vector Pixel</div>
+                </div>
+                <canvas id="canvasB"></canvas>
+            </div>
+
+            <!-- Pane C: LPC High-Res RPG -->
+            <div class="pane">
+                <div class="pane-header">
+                    <div class="pane-title">🗡️ Option C: LPC RPG Farm</div>
+                    <div class="pane-sub">32x32 High-Detail RPG Pixel Art</div>
+                </div>
+                <canvas id="canvasC"></canvas>
+            </div>
+        </div>
+
+        <div class="demo-footer-controls">
+            <div style="font-weight: 800; color: #10b981; display: flex; align-items: center; gap: 8px;">
+                <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10b981; box-shadow: 0 0 10px #10b981;"></span>
+                Synchronized 60 FPS Multi-Canvas Engine Active
+            </div>
+            <div style="font-size: 0.85rem; color: #94a3b8;">
+                🎮 Controls: WASD / Arrow Keys / Click Ground
+            </div>
+        </div>
+    </div>
+
+    <div class="options-comparison-table">
+        <div class="option-card">
+            <h3>Option A: Sprout Lands</h3>
+            <p>Cute 16x16 pixel-art aesthetic inspired by Stardew Valley & Animal Crossing.</p>
+            <ul>
+                <li>Warm pastel colors & organic dirt paths</li>
+                <li>Cute 4-directional character walk cycle</li>
+                <li>Complete crop growth stages & farm house</li>
+            </ul>
+        </div>
+
+        <div class="option-card">
+            <h3>Option B: Kenney Tiny Farm</h3>
+            <p>Crisp, iconic 2D vector pixel art with maximum clarity and 100% CC0 public domain licensing.</p>
+            <ul>
+                <li>High contrast, bold readable icons</li>
+                <li>CC0 Public Domain license (0 restrictions)</li>
+                <li>Clean modular building structures</li>
+            </ul>
+        </div>
+
+        <div class="option-card">
+            <h3>Option C: LPC RPG Farm</h3>
+            <p>Detailed 32x32 RPG pixel-art style with larger character models and rich wooden structures.</p>
+            <ul>
+                <li>High-detail 32x32 character sprite sheet</li>
+                <li>Rich wooden barn & farming tilemaps</li>
+                <li>Detailed item icons for products</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const canvasA = document.getElementById('canvasA');
+        const ctxA = canvasA.getContext('2d');
+
+        const canvasB = document.getElementById('canvasB');
+        const ctxB = canvasB.getContext('2d');
+
+        const canvasC = document.getElementById('canvasC');
+        const ctxC = canvasC.getContext('2d');
+
+        function resize() {
+            [canvasA, canvasB, canvasC].forEach(c => {
+                c.width = c.parentElement.clientWidth;
+                c.height = c.parentElement.clientHeight;
+            });
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Assets for Option A (Sprout Lands)
+        const sprCharA = new Image(); sprCharA.src = 'assets/sprout_lands/Basic Charakter Spritesheet.png';
+        const sprHouseA = new Image(); sprHouseA.src = 'assets/sprout_lands/Wooden House.png';
+        const sprPlantsA = new Image(); sprPlantsA.src = 'assets/sprout_lands/Basic Plants.png';
+        const sprGrassA = new Image(); sprGrassA.src = 'assets/sprout_lands/Grass.png';
+        const sprDirtA = new Image(); sprDirtA.src = 'assets/sprout_lands/Dirt.png';
+
+        // Assets for Option C (LPC)
+        const sprCharC = new Image(); sprCharC.src = 'assets/lpc/character_walk.png';
+
+        // Shared Player State across all 3 side-by-side viewports
+        const player = {
+            x: 180,
+            y: 240,
+            targetX: 180,
+            targetY: 240,
+            speed: 160,
+            frame: 0,
+            direction: 0 // 0: down, 1: up, 2: left, 3: right
+        };
+
+        const keys = {};
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+
+        document.querySelectorAll('.pane').forEach(pane => {
+            pane.addEventListener('mousedown', e => {
+                const rect = pane.getBoundingClientRect();
+                player.targetX = e.clientX - rect.left;
+                player.targetY = e.clientY - rect.top;
+            });
+        });
+
+        let lastTime = performance.now();
+
+        function render(now) {
+            const dt = Math.min(0.1, (now - lastTime) * 0.001);
+            lastTime = now;
+
+            // Handle Input
+            let dx = 0; let dy = 0;
+            if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
+            if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
+            if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
+            if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+
+            let isMoving = false;
+
+            if (dx !== 0 || dy !== 0) {
+                isMoving = true;
+                const len = Math.hypot(dx, dy);
+                player.x += (dx / len) * player.speed * dt;
+                player.y += (dy / len) * player.speed * dt;
+                player.targetX = player.x;
+                player.targetY = player.y;
+
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    player.direction = dx > 0 ? 3 : 2;
+                } else {
+                    player.direction = dy > 0 ? 0 : 1;
+                }
+            } else {
+                const targetDx = player.targetX - player.x;
+                const targetDy = player.targetY - player.y;
+                const targetDist = Math.hypot(targetDx, targetDy);
+                if (targetDist > 5) {
+                    isMoving = true;
+                    player.x += (targetDx / targetDist) * player.speed * dt;
+                    player.y += (targetDy / targetDist) * player.speed * dt;
+                    if (Math.abs(targetDx) > Math.abs(targetDy)) {
+                        player.direction = targetDx > 0 ? 3 : 2;
+                    } else {
+                        player.direction = targetDy > 0 ? 0 : 1;
+                    }
+                }
+            }
+
+            if (isMoving) player.frame += dt * 8;
+            else player.frame = 0;
+
+            const w = canvasA.width;
+            const h = canvasA.height;
+
+            player.x = Math.max(30, Math.min(w - 30, player.x));
+            player.y = Math.max(30, Math.min(h - 30, player.y));
+
+            // Render Pane A (Sprout Lands)
+            renderPaneA(ctxA, w, h);
+
+            // Render Pane B (Kenney Vector Pixel)
+            renderPaneB(ctxB, w, h, now);
+
+            // Render Pane C (LPC RPG 32x32)
+            renderPaneC(ctxC, w, h);
+
+            requestAnimationFrame(render);
+        }
+
+        /* -------------------------------------------------------------------
+           PANE A: Option A (Sprout Lands 16x16)
+           ------------------------------------------------------------------- */
+        function renderPaneA(ctx, w, h) {
+            ctx.imageSmoothingEnabled = false;
+
+            // Grass Tile Base
+            for (let x = 0; x < w; x += 48) {
+                for (let y = 0; y < h; y += 48) {
+                    if (sprGrassA.complete) {
+                        ctx.drawImage(sprGrassA, 0, 0, 16, 16, x, y, 48, 48);
+                    } else {
+                        ctx.fillStyle = '#5c9447';
+                        ctx.fillRect(x, y, 48, 48);
+                    }
+                }
+            }
+
+            // Dirt Plot
+            if (sprDirtA.complete) {
+                for (let px = 0; px < 3; px++) {
+                    for (let py = 0; py < 3; py++) {
+                        ctx.drawImage(sprDirtA, 0, 0, 16, 16, 40 + px * 48, 100 + py * 48, 48, 48);
+                    }
+                }
+            }
+
+            // Crops
+            if (sprPlantsA.complete) {
+                for (let px = 0; px < 3; px++) {
+                    for (let py = 0; py < 3; py++) {
+                        ctx.drawImage(sprPlantsA, 32, 0, 16, 16, 48 + px * 48, 108 + py * 48, 32, 32);
+                    }
+                }
+            }
+
+            // Barn House
+            if (sprHouseA.complete) {
+                ctx.drawImage(sprHouseA, 0, 0, 48, 48, w - 150, 60, 120, 120);
+            }
+
+            // Shadow
+            ctx.beginPath();
+            ctx.ellipse(player.x, player.y + 14, 14, 6, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fill();
+
+            // Sprout Lands Farmer
+            if (sprCharA.complete) {
+                const animFrame = Math.floor(player.frame) % 4;
+                const srcX = animFrame * 48;
+                const srcY = player.direction * 48;
+                ctx.drawImage(sprCharA, srcX, srcY, 48, 48, player.x - 30, player.y - 42, 60, 60);
+            }
+        }
+
+        /* -------------------------------------------------------------------
+           PANE B: Option B (Kenney 2D Vector Pixel)
+           ------------------------------------------------------------------- */
+        function renderPaneB(ctx, w, h, now) {
+            ctx.fillStyle = '#15803d'; // Emerald green
+            ctx.fillRect(0, 0, w, h);
+
+            // Path
+            ctx.fillStyle = '#b45309';
+            ctx.fillRect(40, 100, 144, 144);
+            ctx.strokeStyle = '#d97706';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(40, 100, 144, 144);
+
+            // Barn
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(w - 140, 60, 110, 110);
+            ctx.strokeStyle = '#991b1b';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(w - 140, 60, 110, 110);
+
+            // Barn Roof
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.moveTo(w - 150, 60);
+            ctx.lineTo(w - 85, 30);
+            ctx.lineTo(w - 20, 60);
+            ctx.closePath();
+            ctx.fill();
+
+            // Chicken
+            const peck = Math.sin(now * 0.006) * 3;
+            ctx.fillStyle = '#fffbeb';
+            ctx.beginPath();
+            ctx.arc(80 + peck, 140, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ef4444';
+            ctx.arc(80 + peck, 133, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Kenney Vector Farmer
+            ctx.beginPath();
+            ctx.ellipse(player.x, player.y + 14, 14, 6, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fill();
+
+            const bob = Math.sin(player.frame) * 3;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y - 12 + bob, 16, 0, Math.PI * 2);
+            ctx.fillStyle = '#3b82f6';
+            ctx.fill();
+            ctx.strokeStyle = '#1d4ed8';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            // Straw Hat
+            ctx.beginPath();
+            ctx.ellipse(player.x, player.y - 24 + bob, 22, 9, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#f59e0b';
+            ctx.fill();
+        }
+
+        /* -------------------------------------------------------------------
+           PANE C: Option C (LPC RPG 32x32)
+           ------------------------------------------------------------------- */
+        function renderPaneC(ctx, w, h) {
+            ctx.imageSmoothingEnabled = false;
+            ctx.fillStyle = '#3b6e2a';
+            ctx.fillRect(0, 0, w, h);
+
+            // LPC Soil Plot
+            ctx.fillStyle = '#6e451d';
+            ctx.fillRect(40, 100, 144, 144);
+
+            // LPC Wheat Stalks
+            ctx.fillStyle = '#facc15';
+            for (let i = 0; i < 6; i++) {
+                ctx.fillRect(55 + (i % 3) * 40, 115 + Math.floor(i / 3) * 40, 12, 28);
+            }
+
+            // Wooden Barn House
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(w - 140, 60, 110, 110);
+            ctx.fillStyle = '#92400e';
+            ctx.fillRect(w - 130, 70, 90, 90);
+
+            // Shadow
+            ctx.beginPath();
+            ctx.ellipse(player.x, player.y + 14, 14, 6, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+            ctx.fill();
+
+            // LPC Character Sheet
+            if (sprCharC.complete) {
+                // LPC walk sheet format: 64x64 frames per row (Row 8 = up, 9 = left, 10 = down, 11 = right)
+                let lpcRow = 10;
+                if (player.direction === 1) lpcRow = 8;
+                else if (player.direction === 2) lpcRow = 9;
+                else if (player.direction === 3) lpcRow = 11;
+
+                const lpcFrame = Math.floor(player.frame) % 9;
+                ctx.drawImage(sprCharC, lpcFrame * 64, lpcRow * 64, 64, 64, player.x - 32, player.y - 48, 64, 64);
+            }
+        }
+
+        requestAnimationFrame(render);
+    </script>
+</body>
+</html>
