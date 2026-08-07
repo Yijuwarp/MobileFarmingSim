@@ -14,11 +14,14 @@
         <!-- Canvas Layer -->
         <canvas id="gameCanvas"></canvas>
 
-        <!-- Top Navigation / HUD Overlay -->
+        <!-- Township-inspired HUD Overlay -->
         <header id="hud-header">
             <div class="hud-brand">
                 <span class="logo-icon">🌾</span>
-                <span class="logo-text">FARM EMPIRE</span>
+                <div class="brand-copy">
+                    <span class="brand-label">SUNNY ACRES</span>
+                    <span class="logo-text">FARM EMPIRE</span>
+                </div>
             </div>
 
             <div class="hud-center-stats">
@@ -44,24 +47,24 @@
                 <div class="stat-pill bank-pill" id="bank-pill">
                     <span class="pill-icon">💰</span>
                     <div class="pill-body">
-                        <span class="pill-label">BANK BALANCE</span>
+                        <span class="pill-label">COINS</span>
                         <span class="pill-value" id="hud-bank-balance">$0</span>
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- Bottom Controls & Hints Overlay -->
+        <aside id="farm-objective" aria-live="polite">
+            <span class="objective-icon" id="farm-objective-icon">🌾</span>
+            <div class="objective-copy">
+                <span class="objective-label">FARM TASK</span>
+                <strong id="farm-objective-text">Collect wheat at the grain patch</strong>
+            </div>
+        </aside>
+
+        <!-- Bottom Controls -->
         <div id="hud-controls-hint">
-            <div class="hint-card">
-                <span class="hint-key">WASD / ARROWS / DRAG</span>
-                <span class="hint-desc">Run around farm</span>
-            </div>
-            <div class="hint-card">
-                <span class="hint-key">STAND ON PADS</span>
-                <span class="hint-desc">Fill meter to Hire/Upgrade</span>
-            </div>
-            <button id="sound-toggle-btn" class="icon-btn" title="Toggle SFX">🔊</button>
+            <button id="sound-toggle-btn" class="icon-btn" title="Toggle SFX" aria-label="Toggle sound">🔊</button>
         </div>
 
         <!-- Virtual Joystick for Touch/Mobile -->

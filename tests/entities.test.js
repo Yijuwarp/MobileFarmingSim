@@ -79,3 +79,21 @@ test('Customer - Queue & Purchase Fulfillment', () => {
     assert.equal(customer.state, 'leaving');
     assert.equal(game.marketStall.stock['egg'], 4);
 });
+
+test('GameController - objective guides the active delivery step', () => {
+    const { game } = env;
+
+    let objective = game.getFarmObjective();
+    assert.equal(objective.icon, '🌾');
+    assert.equal(objective.text, 'Collect wheat at the grain patch');
+
+    game.player.carryStack.push('wheat');
+    objective = game.getFarmObjective();
+    assert.equal(objective.icon, '🐔');
+    assert.equal(objective.text, 'Bring wheat to the chicken coop');
+
+    game.player.carryStack = ['egg'];
+    objective = game.getFarmObjective();
+    assert.equal(objective.icon, '🛒');
+    assert.equal(objective.text, 'Stock eggs at the roadside market');
+});

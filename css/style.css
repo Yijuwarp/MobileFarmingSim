@@ -446,3 +446,219 @@ html, body {
     #hud-controls-hint { display: none; }
     #joystick-zone { display: block; }
 }
+
+/* --------------------------------------------------------------------------
+   Township-inspired Casual Mobile UI
+   -------------------------------------------------------------------------- */
+.brand-copy,
+.objective-copy {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-label,
+.objective-label {
+    color: #8b5a2b;
+    font-size: 0.57rem;
+    font-weight: 900;
+    letter-spacing: 0.8px;
+}
+
+#hud-header {
+    gap: 10px;
+}
+
+.hud-brand,
+.stat-pill,
+#farm-objective,
+.icon-btn {
+    background: linear-gradient(180deg, rgba(255, 251, 235, 0.96), rgba(255, 235, 194, 0.94));
+    border: 2px solid rgba(116, 73, 31, 0.52);
+    box-shadow: 0 4px 0 rgba(92, 57, 25, 0.42), 0 9px 18px rgba(54, 35, 17, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.hud-brand {
+    border-radius: 18px;
+    gap: 8px;
+    padding: 7px 13px;
+}
+
+.logo-icon {
+    font-size: 1.35rem;
+}
+
+.logo-text {
+    color: #663f1f;
+    background: none;
+    -webkit-background-clip: initial;
+    -webkit-text-fill-color: initial;
+    text-shadow: none;
+    font-size: 0.88rem;
+    letter-spacing: 0.6px;
+}
+
+.stat-pill {
+    border-radius: 15px;
+    gap: 8px;
+    padding: 6px 11px;
+}
+
+.pill-icon {
+    font-size: 1.05rem;
+}
+
+.pill-label {
+    color: #8b5a2b;
+    font-size: 0.54rem;
+}
+
+.pill-value {
+    color: #4c2e18;
+    font-size: 0.95rem;
+}
+
+.monthly-timer-pill,
+.loan-pill,
+.bank-pill {
+    background: linear-gradient(180deg, rgba(255, 251, 235, 0.96), rgba(255, 235, 194, 0.94));
+}
+
+.monthly-timer-pill {
+    border-color: rgba(217, 119, 6, 0.65);
+}
+
+.monthly-timer-pill .pill-value {
+    color: #b45309;
+}
+
+.loan-pill {
+    border-color: rgba(185, 70, 46, 0.58);
+}
+
+.loan-pill .pill-value {
+    color: #b23d2f;
+}
+
+.bank-pill {
+    border-color: rgba(94, 143, 51, 0.72);
+    box-shadow: 0 4px 0 rgba(58, 100, 31, 0.42), 0 9px 18px rgba(54, 35, 17, 0.2);
+    transform: none;
+}
+
+.bank-pill .pill-value {
+    color: #3d7a2b;
+    font-size: 1.05rem;
+    text-shadow: none;
+}
+
+#farm-objective {
+    position: absolute;
+    top: 91px;
+    left: 20px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    max-width: min(330px, calc(100vw - 40px));
+    padding: 8px 12px 8px 8px;
+    border-radius: 18px;
+    pointer-events: none;
+}
+
+.objective-icon {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: 12px;
+    background: #8dbc46;
+    box-shadow: inset 0 -2px 0 rgba(58, 100, 31, 0.35);
+    font-size: 1.1rem;
+}
+
+#farm-objective strong {
+    color: #4c2e18;
+    font-size: 0.76rem;
+    line-height: 1.15;
+}
+
+#hud-controls-hint {
+    bottom: 22px;
+    right: 20px;
+    left: auto;
+}
+
+.icon-btn {
+    width: 42px;
+    height: 42px;
+    color: #4c2e18;
+    font-size: 1.1rem;
+}
+
+#joystick-zone {
+    right: auto;
+    left: 22px;
+    bottom: 24px;
+}
+
+#joystick-base {
+    background: rgba(251, 235, 194, 0.78);
+    border: 3px solid rgba(116, 73, 31, 0.58);
+    box-shadow: 0 4px 0 rgba(92, 57, 25, 0.35), 0 8px 18px rgba(54, 35, 17, 0.2);
+}
+
+#joystick-stick {
+    background: radial-gradient(circle at 35% 28%, #fff7c6, #f0aa2e 55%, #b96910);
+    border: 2px solid rgba(119, 67, 15, 0.55);
+}
+
+#toast-container {
+    top: 154px;
+    right: 16px;
+    left: 16px;
+    align-items: center;
+}
+
+.toast {
+    max-width: 360px;
+    background: rgba(77, 46, 24, 0.92);
+    border-radius: 14px;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    #hud-header {
+        top: 10px;
+        left: 12px;
+        right: 12px;
+        display: flex;
+        flex-flow: row wrap;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .hud-brand { order: 1; }
+    .hud-right-stats { order: 2; margin-left: auto; }
+    .hud-center-stats {
+        order: 3;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+    }
+
+    .stat-pill {
+        min-width: 0;
+        justify-content: center;
+    }
+
+    #farm-objective {
+        top: 123px;
+        left: 12px;
+        max-width: calc(100vw - 24px);
+    }
+
+    #toast-container { top: 180px; }
+}
