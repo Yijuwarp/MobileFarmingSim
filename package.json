@@ -4,7 +4,7 @@
   "description": "Farm Empire - High Pace Automation Simulator",
   "main": "js/main.js",
   "scripts": {
-    "test": "node --test tests/economy.test.js tests/entities.test.js tests/stations.test.js",
+    "test": "node --test tests/economy.test.js tests/entities.test.js tests/stations.test.js tests/engine.test.js",
     "start": "npx -y http-server . -p 8080 -c-1"
   },
   "keywords": [

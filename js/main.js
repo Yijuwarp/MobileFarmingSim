@@ -161,6 +161,8 @@ class GameController {
         const timerElem = document.getElementById('hud-timer');
         const timerBar = document.getElementById('hud-timer-bar');
         const timerPill = document.getElementById('loan-timer-pill');
+        const objectiveIcon = document.getElementById('farm-objective-icon');
+        const objectiveText = document.getElementById('farm-objective-text');
 
         if (bankElem) bankElem.innerText = `$${economy.balance.toLocaleString()}`;
         if (loanElem) loanElem.innerText = `$${economy.loanPrincipal.toLocaleString()}`;
@@ -176,7 +178,6 @@ class GameController {
             timerBar.style.width = `${ratio * 100}%`;
         }
 
-        // Urgent warning pulse when < 10 seconds remaining
         if (timerPill) {
             if (remainingSeconds <= 10) {
                 timerPill.classList.add('urgent');
@@ -184,6 +185,32 @@ class GameController {
                 timerPill.classList.remove('urgent');
             }
         }
+
+        const objective = this.getFarmObjective();
+        if (this.lastObjective !== objective.text) {
+            this.lastObjective = objective.text;
+            if (objectiveIcon) objectiveIcon.innerText = objective.icon;
+            if (objectiveText) objectiveText.innerText = objective.text;
+        }
+    }
+
+    getFarmObjective() {
+        if (this.player.carryStack.includes('wheat')) {
+            return { icon: '🐔', text: 'Bring wheat to the chicken coop' };
+        }
+        if (this.player.carryStack.includes('egg')) {
+            return { icon: '🛒', text: 'Stock eggs at the roadside market' };
+        }
+        if (this.player.carryStack.includes('mayo')) {
+            return { icon: '🛒', text: 'Stock mayo at the roadside market' };
+        }
+        if (!this.mayoStation.isUnlocked && economy.balance >= this.mayoStation.unlockPad.cost) {
+            return { icon: '🏭', text: 'Unlock the mayo factory to grow sales' };
+        }
+        if (this.marketStall.stock.egg > 0 || this.marketStall.stock.mayo > 0) {
+            return { icon: '🧑‍🤝‍🧑', text: 'Customers are arriving at the market' };
+        }
+        return { icon: '🌾', text: 'Collect wheat at the grain patch' };
     }
 
     render() {

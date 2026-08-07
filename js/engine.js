@@ -406,8 +406,8 @@ class GameEngine {
             const wingOffset = Math.sin(w.wingTimer) * 4;
             this.ctx.fillStyle = w.color;
             this.ctx.beginPath();
-            this.ctx.ellipse(w.x - 3, w.y, 4, 3 + wingOffset, 0, 0, Math.PI * 2);
-            this.ctx.ellipse(w.x + 3, w.y, 4, 3 + wingOffset, 0, 0, Math.PI * 2);
+            this.ctx.ellipse(w.x - 3, w.y, 4, Math.max(0.5, 3 + wingOffset), 0, 0, Math.PI * 2);
+            this.ctx.ellipse(w.x + 3, w.y, 4, Math.max(0.5, 3 + wingOffset), 0, 0, Math.PI * 2);
             this.ctx.fill();
             this.ctx.restore();
         });
